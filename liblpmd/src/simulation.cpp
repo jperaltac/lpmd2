@@ -5,9 +5,14 @@
 namespace lpmd {
 
 Simulation::Simulation(std::vector<Particle> particles, ForceFieldPtr force_field)
-    : particles_(std::move(particles)), force_field_(std::move(force_field)) {}
+    : particles_(std::move(particles)) {
+    set_force_field(std::move(force_field));
+}
 
 void Simulation::set_force_field(ForceFieldPtr force_field) {
+    if (!force_field) {
+        throw std::invalid_argument("Simulation requires a non-null force field");
+    }
     force_field_ = std::move(force_field);
 }
 

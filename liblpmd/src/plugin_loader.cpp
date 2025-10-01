@@ -114,7 +114,7 @@ ForceFieldPtr PluginLoader::create_force_field() const {
     return factory_();
 }
 
-void PluginLoader::close() {
+void PluginLoader::close() noexcept {
     if (handle_) {
         close_library(handle_);
         handle_ = nullptr;
