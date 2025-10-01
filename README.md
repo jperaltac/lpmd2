@@ -11,6 +11,9 @@ cmake --build build
 
 The executable is placed in `build/bin/lpmd` and plugins in `build/lib`.
 
+For a more detailed walkthrough of verifying the compilation outputs, see
+[`docs/COMPILATION.md`](docs/COMPILATION.md).
+
 ## Running
 
 Run the simulator and let it locate the default plugin automatically:
