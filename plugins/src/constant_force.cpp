@@ -1,36 +1,54 @@
-#include <array>
-#include <cmath>
-#include <cstddef>
-#include <memory>
-#include <vector>
+#include <lpmd/plugin.h>
+#include <lpmd/module.h>
+#include <lpmd/vector.h>
+#include <lpmd/particleset.h>
+#include <lpmd/error.h>
 
-#include "lpmd/force_field.hpp"
+#include <cstdlib>
+#include <iostream>
 
 namespace {
 
-class ConstantForceField : public lpmd::ForceField {
+class ConstantForcePlugin : public lpmd::Plugin {
 public:
-    ConstantForceField(std::array<double, 3> force) : force_(force) {}
-
-    void apply(std::vector<lpmd::Particle>& particles, double dt) override {
-        for (auto& particle : particles) {
-            std::array<double, 3> acceleration{};
-            for (std::size_t i = 0; i < 3; ++i) {
-                acceleration[i] = force_[i] / particle.mass;
-                particle.velocity[i] += acceleration[i] * dt;
-                particle.position[i] += particle.velocity[i] * dt;
-            }
-        }
+    ConstantForcePlugin()
+        : lpmd::Plugin("constant-force", "1.0.0") {
+        DefineKeyword("fx", "0.0");
+        DefineKeyword("fy", "0.0");
+        DefineKeyword("fz", "-9.81");
     }
 
-    std::string name() const override { return "constant-force"; }
+    std::string Provides() const override { return "force-field"; }
 
-private:
-    std::array<double, 3> force_;
+    void ShowHelp() const override {
+        std::cout << "Applies a constant acceleration to every particle in the active configuration.\n"
+                  << "Keywords: fx fy fz (acceleration components in Å/ps²)." << std::endl;
+    }
+
+    void Apply(lpmd::ParticleSet& particles, double dt) {
+        const lpmd::Vector acceleration(
+            atof((*this)["fx"].c_str()),
+            atof((*this)["fy"].c_str()),
+            atof((*this)["fz"].c_str()));
+
+        for (long i = 0; i < particles.Size(); ++i) {
+            auto& atom = particles[i];
+            atom.Velocity() += acceleration * dt;
+            atom.Position() += atom.Velocity() * dt;
+        }
+    }
 };
 
 }  // namespace
 
-extern "C" lpmd::ForceFieldPtr create_force_field() {
-    return std::make_unique<ConstantForceField>(std::array<double, 3>{0.0, 0.0, -9.81});
+extern "C" lpmd::Plugin* create(std::string args) {
+    auto* plugin = new ConstantForcePlugin();
+    if (!args.empty()) {
+        plugin->ProcessArguments(args);
+    }
+    return plugin;
+}
+
+extern "C" void destroy(lpmd::Plugin* plugin) {
+    delete plugin;
 }
