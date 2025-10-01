@@ -7,8 +7,8 @@
 #ifndef __LPMDSYSTEM_CONFIG_H__
 #define __LPMDSYSTEM_CONFIG_H__
 
-#define PLUGINPATH "$(prefix)/lib/lpmd"
-#define VERSION "$(version)"
+#define PLUGINPATH "@LPMD_DEFAULT_PLUGIN_PATH@"
+#define VERSION "@PROJECT_VERSION@"
 
 #endif
 
