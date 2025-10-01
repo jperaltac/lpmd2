@@ -48,12 +48,28 @@ ForceFieldFactory load_factory(void* handle) {
 #if defined(_WIN32)
     auto symbol = reinterpret_cast<ForceFieldFactory>(GetProcAddress(
         static_cast<HMODULE>(handle), kForceFieldFactorySymbol));
+    if (!symbol) {
+        DWORD error_code = GetLastError();
+        std::ostringstream message;
+        message << "The loaded plugin does not expose the expected factory function";
+        if (error_code != 0) {
+            message << " (error code " << error_code << ")";
+        }
+        throw std::runtime_error(message.str());
+    }
 #else
+    dlerror();  // Clear any existing error state.
     auto symbol = reinterpret_cast<ForceFieldFactory>(dlsym(handle, kForceFieldFactorySymbol));
-#endif
+    if (const char* error_message = dlerror()) {
+        std::ostringstream message;
+        message << "The loaded plugin does not expose the expected factory function: "
+                << error_message;
+        throw std::runtime_error(message.str());
+    }
     if (!symbol) {
         throw std::runtime_error("The loaded plugin does not expose the expected factory function");
     }
+#endif
     return symbol;
 }
 
@@ -62,7 +78,13 @@ ForceFieldFactory load_factory(void* handle) {
 PluginLoader::PluginLoader(std::filesystem::path library_path)
     : library_path_(std::filesystem::absolute(std::move(library_path))) {
     handle_ = open_library(library_path_);
-    factory_ = load_factory(handle_);
+    try {
+        factory_ = load_factory(handle_);
+    } catch (...) {
+        close_library(handle_);
+        handle_ = nullptr;
+        throw;
+    }
 }
 
 PluginLoader::PluginLoader(PluginLoader&& other) noexcept {
