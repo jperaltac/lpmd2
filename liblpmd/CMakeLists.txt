@@ -15,4 +15,6 @@ target_compile_features(liblpmd PUBLIC cxx_std_17)
 
 if(WIN32)
     target_compile_definitions(liblpmd PRIVATE NOMINMAX)
+elseif(UNIX AND NOT APPLE)
+    target_link_libraries(liblpmd PUBLIC dl)
 endif()
