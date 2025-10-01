@@ -90,7 +90,7 @@ void CommandArguments::Parse(int argc, const char ** argv)
    }
    if (optfound == false) throw SyntaxError("Unknown command line option, -"+optname);
    optargs = StringSplit(curropt.args);
-   (*this)[curropt.longname] == "true";
+   (*this)[curropt.longname] = "true";
   }
   else
   {
