@@ -1,1 +1,32 @@
 # lpmd2
+
+A modernized CMake build that combines the core `liblpmd` library, runtime plugins, and the `lpmd` command line executable into a single project. The reorganisation makes it easy to build all components together and experiment with a simple molecular dynamics workflow.
+
+## Building
+
+```bash
+cmake -S . -B build
+cmake --build build
+```
+
+The executable is placed in `build/bin/lpmd` and plugins in `build/lib`.
+
+## Running
+
+Run the simulator and let it locate the default plugin automatically:
+
+```bash
+./build/bin/lpmd
+```
+
+You can also specify a plugin explicitly:
+
+```bash
+./build/bin/lpmd /path/to/plugin
+```
+
+## Project layout
+
+- `liblpmd/` – Core simulation primitives and the plugin loader.
+- `plugins/` – Sample plugins implementing `lpmd::ForceField`.
+- `lpmd/` – Command line executable that wires everything together.
