@@ -1,0 +1,719 @@
+#
+#
+#
+
+name = lpmd-plugins
+fullname = 'LPMD plugins'
+version = 0.6.4
+author = 'GNM <gnm@gnm.cl>'
+prefix = /usr/local
+
+language c++
+ifdef intel
+   compiler = icpc
+   linker = icpc
+   flags =-Wall -O3 -axSSE4.1 -parallel -diag-disable remark -finline-functions -DNDEBUG  -fPIC -lpthread -lguide
+   ifdef openmp
+    openmpflags = -openmp
+   endif
+else
+   compiler = g++
+   linker = g++
+   flags = -Wall -O3 -ffast-math -funroll-all-loops -finline-functions -std=gnu++98
+   ifdef openmp
+    openmpflags = -fopenmp
+   endif
+endif
+end
+
+directory .
+
+    module addvelocity.so
+       language = c++
+       sources = addvelocity.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module angdist.so
+       language = c++
+       sources = angdist.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module angularmomentum.so
+       language = c++
+       sources = angularmomentum.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module atomenergy.so
+       language = c++
+       sources = atomenergy.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module atomtrail.so
+       language = c++
+       sources = atomtrail.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module average.so
+       language = c++
+       sources = average.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module beeman.so
+       language = c++
+       sources = beeman.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module berendsen.so
+       language = c++
+       sources = berendsen.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module box.so
+       language = c++
+       sources = box.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module buckingham.so
+       language = c++
+       sources = buckingham.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module cellscaling.so
+       language = c++
+       sources = cellscaling.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+    
+    module centrosymmetry.so
+       language = c++
+       sources = centrosymmetry.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module cna.so
+       language = c++
+       sources = cna.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module cone.so
+       language = c++
+       sources = cone.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module constantforce.so
+       language = c++
+       sources = constantforce.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module cordnum.so
+       language = c++
+       sources = cordnum.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module cordnumfunc.so
+       language = c++
+       sources = cordnumfunc.cc
+       installpath = lib/lpmd
+       pkgconfig +=liblpmd-2.0
+    end
+
+    module crystal2d.so
+       language = c++
+       sources = crystal2d.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module crystal3d.so
+       language = c++
+       sources = crystal3d.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module cylinder.so
+       language = c++
+       sources = cylinder.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module drbeeman.so
+       language = c++
+       sources = drbeeman.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module density.so
+       language = c++
+       sources = density.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module densityprofile.so
+       language = c++
+       sources = densityprofile.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module displace.so
+       language = c++
+       sources = displace.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module dlpoly.so
+       language = c++
+       sources = dlpoly.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module element.so
+       language = c++
+       sources = element.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module euler.so
+       language = c++
+       sources = euler.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module ewald.so
+       language = c++
+       sources = ewald.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module external.so
+       language = c++
+       sources = external.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module fastlj.so
+       language = c++
+       sources = fastlj.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module finnissinclair.so
+       language = c++
+       sources = finnissinclair.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+    
+    module finnissinclair-ext.so
+       language = c++
+       sources = finnissinclair-ext.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module gdr.so
+       language = c++
+       sources = gdr.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module gupta.so
+       language = c++
+       sources = gupta.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module harmonic.so
+       language = c++
+       sources = harmonic.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module index.so
+       language = c++
+       sources = index.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module lammps.so
+       language = c++
+       sources = lammps.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+       libraries += -lz
+    end
+
+    module lcbinary.so
+       language = c++
+       sources = lcbinary.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module leapfrog.so
+       language = c++
+       sources = leapfrog.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module lennardjones.so
+       language = c++
+       sources = lennardjones.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module lennardjonesMod.so
+       language = c++
+       sources = lennardjonesMod.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module linkedcell.so
+       language = c++
+       sources = linkedcell.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module localpressure.so
+       language = c++
+       sources = localpressure.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module lpmd.so
+       language = c++
+       sources = lpmd.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+       libraries += -lz
+    end
+
+    ifdef lpvisual
+     module lpvisual.so
+        language = c++
+        sources = display.cc lpvisual.cc
+        installpath = lib/lpmd
+        pkgconfig += liblpmd-2.0
+        libraries += -lm -lGL -lGLU -lglut -lX11
+        ifdef ati
+         libraries += -L/usr/lib/fglrx
+        endif
+     end
+    endif
+
+    module mcy.so
+       language = c++
+       sources = mcy.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module metropolis.so
+       language = c++
+       sources = metropolis.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module minimumimage.so
+       language = c++
+       sources = minimumimage.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module mol2.so
+       language = c++
+       sources = mol2.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module moleculecm.so
+       language = c++
+       sources = moleculecm.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module monitor.so
+       language = c++
+       sources = monitor.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module morse.so
+       language = c++
+       sources = morse.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module msd.so
+       language = c++
+       sources = msd.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module nosehoover.so
+       language = c++
+       sources = nosehoover.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module nullintegrator.so
+       language = c++
+       sources = nullintegrator.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module nullmetalpotential.so
+       language = c++
+       sources = nullmetalpotential.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module nullmixer.so
+       language = c++
+       sources = nullmixer.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module nullpairpotential.so
+       language = c++
+       sources = nullpairpotential.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module nullpotential.so
+       language = c++
+       sources = nullpotential.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module osciforce.so
+       language = c++
+       sources = osciforce.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module pairdistances.so
+       language = c++
+       sources = pairdistances.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module pdb.so
+       language = c++
+       sources = pdb.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module pinatom.so
+       language = c++
+       sources = pinatom.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module propertycolor.so
+       language = c++
+       sources = propertycolor.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module printatoms.so
+       language = c++
+       sources = printatoms.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module quenchedmd.so
+       language = c++
+       sources = quenchedmd.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module random.so
+       language = c++
+       sources = random.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module rawbinary.so
+       language = c++
+       sources = rawbinary.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module replicate.so
+       language = c++
+       sources = replicate.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module rotate.so
+       language = c++
+       sources = rotate.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module rvcorr.so
+       language = c++
+       sources = rvcorr.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module searchfill.so
+       language = c++
+       sources = searchfill.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module setcolor.so
+       language = c++
+       sources = setcolor.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module settag.so
+       language = c++
+       sources = settag.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module setvelocity.so
+       language = c++
+       sources = setvelocity.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module shear.so
+       language = c++
+       sources = shear.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module skewstart.so
+       language = c++
+       sources = skewstart.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module simplebond.so
+       language = c++
+       sources = simplebond.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module sitecoord.so
+       language = c++
+       sources = sitecoord.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module sphere.so
+       language = c++
+       sources = sphere.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module suttonchen.so
+       language = c++
+       sources = suttonchen.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+    
+    module tabulatedpair.so
+       language = c++
+       sources = tabulatedpair.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module tag.so
+       language = c++
+       sources = tag.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module tagsurface.so
+       language = c++
+       sources = tagsurface.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+    
+    module temperature.so
+       language = c++
+       sources = temperature.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module tempprofile.so
+       language = c++
+       sources = tempprofile.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module tempscaling.so
+       language = c++
+       sources = tempscaling.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module undopbc.so
+       language = c++
+       sources = undopbc.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module vacf.so
+       language = c++
+       sources = vacf.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module varstep.so
+       language = c++
+       sources = varstep.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module vasp.so
+       language = c++
+       sources = vasp.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module veldist.so
+       language = c++
+       sources = veldist.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module velocityverlet.so
+       language = c++
+       sources = velocityverlet.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module verlet.so
+       language = c++
+       sources = verlet.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module verletlist.so
+       language = c++
+       sources = verletlist.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module voronoi.so
+       language = c++
+       sources = voronoi.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+    module xyz.so
+       language = c++
+       sources = xyz.cc
+       installpath = lib/lpmd
+       pkgconfig += liblpmd-2.0
+    end
+
+end
+
