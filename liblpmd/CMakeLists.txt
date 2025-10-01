@@ -1,48 +1,73 @@
+set(LPMD_CORE_SOURCES
+    core/atom.cc
+    core/atomselector.cc
+    core/cell.cc
+    core/cellmanager.cc
+    core/configuration.cc
+    core/matrix.cc
+    core/paramlist.cc
+    core/particleset.cc
+    core/properties.cc
+    core/property.cc
+    core/value.cc
+)
+
+set(LPMD_IO_SOURCES
+    io/cellformat.cc
+    io/cellreader.cc
+    io/cellwriter.cc
+    io/controlfile.cc
+    io/simulationhistory.cc
+)
+
+set(LPMD_PLUGIN_SOURCES
+    plugins/module.cc
+    plugins/moduleinfo.cc
+    plugins/plugin.cc
+    plugins/pluginmanager.cc
+)
+
+set(LPMD_RUNTIME_SOURCES
+    runtime/cmdline.cc
+    runtime/session.cc
+)
+
+set(LPMD_SIMULATION_SOURCES
+    simulation/cellgenerator.cc
+    simulation/integrator.cc
+    simulation/metalpotential.cc
+    simulation/onestepintegrator.cc
+    simulation/pairpotential.cc
+    simulation/potential.cc
+    simulation/simulation.cc
+    simulation/simulationbuilder.cc
+    simulation/systemfilter.cc
+    simulation/systemmixer.cc
+    simulation/systemmodifier.cc
+    simulation/twostepintegrator.cc
+)
+
+set(LPMD_SUPPORT_SOURCES
+    support/color.cc
+    support/colorhandler.cc
+    support/elements.cc
+    support/error.cc
+    support/timer.cc
+    support/util.cc
+    support/visualizer.cc
+)
+
 set(LPMLPD_SOURCES
-    atom.cc
-    atomselector.cc
-    cell.cc
-    cellformat.cc
-    cellgenerator.cc
-    cellmanager.cc
-    cellreader.cc
-    cellwriter.cc
-    cmdline.cc
-    color.cc
-    colorhandler.cc
-    configuration.cc
-    controlfile.cc
-    elements.cc
-    error.cc
-    integrator.cc
-    matrix.cc
-    metalpotential.cc
-    module.cc
-    moduleinfo.cc
-    onestepintegrator.cc
-    pairpotential.cc
-    paramlist.cc
-    particleset.cc
-    plugin.cc
-    pluginmanager.cc
-    potential.cc
-    properties.cc
-    property.cc
-    session.cc
-    simulation.cc
-    simulationbuilder.cc
-    simulationhistory.cc
-    systemfilter.cc
-    systemmixer.cc
-    systemmodifier.cc
-    timer.cc
-    twostepintegrator.cc
-    util.cc
-    value.cc
-    visualizer.cc
+    ${LPMD_CORE_SOURCES}
+    ${LPMD_IO_SOURCES}
+    ${LPMD_PLUGIN_SOURCES}
+    ${LPMD_RUNTIME_SOURCES}
+    ${LPMD_SIMULATION_SOURCES}
+    ${LPMD_SUPPORT_SOURCES}
 )
 
 list(TRANSFORM LPMLPD_SOURCES PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${LPMLPD_SOURCES})
 
 set(LPMD_DEFAULT_PLUGIN_PATH "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
 if(NOT LPMD_DEFAULT_PLUGIN_PATH)

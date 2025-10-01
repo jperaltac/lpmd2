@@ -1,3 +1,22 @@
 
-Este es el directorio fuente de liblpmd.
+Este es el directorio fuente de liblpmd. A partir de esta versión la
+organización del código fuente se estructuró en subdirectorios temáticos
+pensando en facilitar la evolución futura de la biblioteca y la
+incorporación progresiva de nuevas implementaciones (por ejemplo en Rust).
+
+La organización es la siguiente:
+
+- `core/`: estructuras de datos fundamentales y primitivas del núcleo.
+- `io/`: componentes encargados de la entrada/salida y formatos de archivo.
+- `plugins/`: infraestructura relacionada con los módulos y plugins
+  dinámicos.
+- `runtime/`: utilidades de arranque y gestión de sesiones.
+- `simulation/`: algoritmos de simulación, integradores y potenciales.
+- `support/`: utilidades auxiliares y herramientas compartidas.
+
+Esta separación permite delimitar responsabilidades, facilita exponer
+interfaces estables hacia otros lenguajes y reduce el acoplamiento entre
+componentes. La intención es que, con el tiempo, estas capas sirvan como
+puente para una migración gradual hacia implementaciones complementarias
+en Rust.
 

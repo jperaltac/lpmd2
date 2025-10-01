@@ -52,12 +52,17 @@ directory .
        language = c++
        flags += -Wall -pedantic -std=gnu++98 -I. -fPIC
 
-       sources = atom.cc cell.cc cellgenerator.cc cellreader.cc cellwriter.cc cellformat.cc cellmanager.cc cmdline.cc \
-		  color.cc colorhandler.cc controlfile.cc configuration.cc elements.cc error.cc module.cc \
-		  metalpotential.cc paramlist.cc plugin.cc pluginmanager.cc potential.cc pairpotential.cc particleset.cc \
-		  properties.cc property.cc session.cc matrix.cc simulation.cc timer.cc integrator.cc systemmodifier.cc \
-		  onestepintegrator.cc twostepintegrator.cc systemmixer.cc visualizer.cc value.cc moduleinfo.cc util.cc \
-		  simulationbuilder.cc atomselector.cc systemfilter.cc simulationhistory.cc
+       sources = core/atom.cc core/atomselector.cc core/cell.cc core/cellmanager.cc core/configuration.cc core/matrix.cc \
+                  core/paramlist.cc core/particleset.cc core/properties.cc core/property.cc core/value.cc \
+                  io/cellformat.cc io/cellreader.cc io/cellwriter.cc io/controlfile.cc io/simulationhistory.cc \
+                  plugins/module.cc plugins/moduleinfo.cc plugins/plugin.cc plugins/pluginmanager.cc \
+                  runtime/cmdline.cc runtime/session.cc \
+                  simulation/cellgenerator.cc simulation/integrator.cc simulation/metalpotential.cc \
+                  simulation/onestepintegrator.cc simulation/pairpotential.cc simulation/potential.cc \
+                  simulation/simulation.cc simulation/simulationbuilder.cc simulation/systemfilter.cc \
+                  simulation/systemmixer.cc simulation/systemmodifier.cc simulation/twostepintegrator.cc \
+                  support/color.cc support/colorhandler.cc support/elements.cc support/error.cc support/timer.cc \
+                  support/util.cc support/visualizer.cc
 
        headers = lpmd_headers
        version = 2.0.1
