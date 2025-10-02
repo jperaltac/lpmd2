@@ -28,7 +28,7 @@ class RandomSelector: public Selector<BasicParticleSet>
     while(random.Size()<tochange)
     {
       int rnd = int(drand48()*ps.Size());
-      if (rnd!=0) random.AppendUnique(rnd);
+      random.AppendUnique(rnd);
     }
     std::cerr << "-> random Size = " << random.Size() << '\n';
     for(int i=0;i<random.Size();++i)
@@ -49,7 +49,7 @@ class RandomSelector: public Selector<BasicParticleSet>
     while(random.Size()<tochange)
     {
      int rnd = int(drand48()*ps.Size());
-     if (rnd!=0) random.AppendUnique(rnd);
+     random.AppendUnique(rnd);
     }
     for(int i=0;i<random.Size();++i)
     {
