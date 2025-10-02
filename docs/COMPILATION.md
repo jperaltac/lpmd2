@@ -5,11 +5,17 @@ compiles successfully from a clean checkout.
 
 ## Steps
 
-1. Configure the project and generate the build system files:
+1. Install the system requirements (compiler toolchain, CMake, GLUT headers).
+   The provided helper script covers the most common Linux distributions:
+   ```bash
+   ./scripts/install_requirements.sh
+   ```
+
+2. Configure the project and generate the build system files:
    ```bash
    cmake -S . -B build
    ```
-2. Build all targets:
+3. Build all targets:
    ```bash
    cmake --build build
    ```
