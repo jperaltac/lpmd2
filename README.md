@@ -4,6 +4,17 @@ A modernized CMake build that combines the core `liblpmd` library, runtime plugi
 
 ## Building
 
+Before configuring the project make sure the required system packages are
+available. The repository ships with a small helper script that installs the
+compiler toolchain, CMake, and the GLUT development headers on the most common
+Linux distributions:
+
+```bash
+./scripts/install_requirements.sh
+```
+
+Once the dependencies are in place you can configure and build the project:
+
 ```bash
 cmake -S . -B build
 cmake --build build
