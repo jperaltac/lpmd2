@@ -4,10 +4,14 @@
 
 #include <lpmd/timer.h>
 
+#include <cerrno>
+#include <cstring>
 #include <iostream>
+#include <string>
 #include <sys/time.h>
 #include <sys/resource.h>
-#include <cstdio>
+
+#include <lpmd/error.h>
 
 using namespace lpmd;
 
@@ -40,10 +44,9 @@ void Timer::Stop()
   timpl->tuser = double(usg.ru_utime.tv_sec) + (1e-6)*double(usg.ru_utime.tv_usec);
   timpl->tsystem = double(usg.ru_stime.tv_sec) + (1e-6)*double(usg.ru_stime.tv_usec);
  }
- else 
+ else
  {
-  perror("lpmd");
-  exit(1);
+  throw SystemError(std::string("getrusage failed: ") + std::strerror(errno));
  }
 }
 

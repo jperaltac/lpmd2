@@ -6,6 +6,8 @@
 #define __LPMD_MATRIX_H__
 
 #include <iostream>
+#include <vector>
+
 #include <lpmd/array.h>
 
 namespace lpmd
@@ -41,8 +43,8 @@ class Matrix
 
  private:
    long nr, nc;
-   double **values;   
-   Array<std::string> col_labels;
+   std::vector<double> values;
+  Array<std::string> col_labels;
 };
 
 // Sobrecarga operadores aritmeticos 

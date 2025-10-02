@@ -106,13 +106,10 @@ void Module::ProcessArguments(std::string line)
 
 std::string Module::GetNextWord()
 {
- if (impl->words.Size() > 0)
- {
-  std::string tmp = impl->words[0];
-  impl->words.Delete(0);
-  return tmp;
- } 
- return "(null)";
+ if (impl->words.Size() == 0) throw SyntaxError("Unexpected end of input while reading module arguments");
+ std::string tmp = impl->words[0];
+ impl->words.Delete(0);
+ return tmp;
 }
 
 std::string Module::GetNextWord(char d)
@@ -123,9 +120,14 @@ std::string Module::GetNextWord(char d)
  else if(d=='(') e= ')';
  else e=d;
 
+ if (impl->words.Size() == 0) throw SyntaxError("Unexpected end of input while reading module arguments");
+
  std::string nextword = impl->words[0];
  impl->words.Delete(0);
- if(nextword[0]!=d) {std::cerr << "Error reading module" << '\n';exit(0);}
+ if (nextword.empty() || nextword[0] != d)
+ {
+  throw SyntaxError("Malformed argument sequence while reading module input");
+ }
  if(nextword[0]==d && (nextword[nextword.size()-1]==e && nextword.size()>1)) return nextword;
 
  std::ostringstream ostr;
@@ -133,6 +135,7 @@ std::string Module::GetNextWord(char d)
  nextword = " ";
  while(nextword[nextword.size()-1]!=e)
  {
+  if (impl->words.Size() == 0) throw SyntaxError("Unexpected end of input while reading module arguments");
   nextword = impl->words[0];
   ostr <<" "<< nextword;
   impl->words.Delete(0);
