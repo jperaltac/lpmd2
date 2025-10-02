@@ -5,7 +5,11 @@
 #ifndef __LPMD_PLUGINMANAGER_H__
 #define __LPMD_PLUGINMANAGER_H__
 
+#include <filesystem>
 #include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
 #include <lpmd/plugin.h>
 #include <lpmd/paramlist.h>
@@ -14,6 +18,8 @@
 
 namespace lpmd
 {
+
+struct PluginDeleter;
 
 // Safe casting of Modules into specific kinds of plugins
 template<class T> T & CastModule(Module & m)
@@ -31,7 +37,7 @@ class PluginManager
 
    Array<std::string> Plugins() const;
 
-   void AddToPluginPath(std::string pdir);
+   void AddToPluginPath(const std::filesystem::path & pdir);
 
    void LoadPluginFile(std::string path, std::string id, std::string args);
    void LoadPlugin(std::string name, std::string id, std::string args);
@@ -65,8 +71,8 @@ class PluginManager
    const Plugin & operator[](std::string id) const;
 
  private:
-   std::map<std::string, Plugin *> modules;
-   Array<std::string> pluginpath;
+   std::map<std::string, std::unique_ptr<Plugin, PluginDeleter>> modules;
+   std::vector<std::filesystem::path> pluginpath;
    std::map<std::string, Plugin *> namedprops;
    ParamList aliasdict;
 };

@@ -5,62 +5,46 @@
 #include <lpmd/matrix.h>
 #include <lpmd/error.h>
 
-#include <iostream>
+#include <algorithm>
+#include <cmath>
 #include <iomanip>
+#include <iostream>
+#include <limits>
 #include <sstream>
 
 using namespace lpmd;
 
-Matrix::Matrix(long cols, long rows)
+namespace
 {
- nc = cols;
- nr = rows;
- values = new double*[rows];
+inline std::size_t Index(long columns, long col, long row)
+{
+ return static_cast<std::size_t>(row) * static_cast<std::size_t>(columns) + static_cast<std::size_t>(col);
+}
+}
+
+Matrix::Matrix(long cols, long rows): nr(rows), nc(cols), values(static_cast<std::size_t>(rows*cols), 0.0)
+{
+ col_labels.Clear();
  for (long i=0;i<cols;++i) col_labels.Append(" ? ");
- for (long j=0;j<rows;++j)
- {
-  values[j] = new double[cols]; 
-  for (long i=0;i<cols;++i) values[j][i] = 0.0e0;
- }
 }
 
-Matrix::Matrix()
+Matrix::Matrix(): nr(0), nc(0), values()
 {
- nc = 0;
- nr = 0;
- values = NULL;
 }
 
-Matrix::Matrix(const Matrix & m)
+Matrix::Matrix(const Matrix & m): nr(m.Rows()), nc(m.Columns()), values(m.values), col_labels(m.col_labels)
 {
- nc = m.Columns();
- nr = m.Rows();
- values = new double*[nr];
- for (long i=0;i<nc;++i) col_labels.Append(m.GetLabel(i));
- for (long j=0;j<nr;++j)
- {
-  values[j] = new double[nc]; 
-  for (long i=0;i<nc;++i) values[j][i] = m.Get(i, j);
- }
 }
 
-Matrix::~Matrix() 
-{
- if (values != NULL)
- {
-  for (long j=0;j<Rows();++j) delete [] values[j];
-  delete [] values;
-  values = NULL;
- }
-}
+Matrix::~Matrix() = default;
 
 long Matrix::Rows() const { return nr; }
 
 long Matrix::Columns() const { return nc; }
 
-double Matrix::Get(long col, long row) const { return values[row][col]; }
+double Matrix::Get(long col, long row) const { return values[Index(nc, col, row)]; }
 
-void Matrix::Set(long col, long row, double v) { values[row][col] = v; }
+void Matrix::Set(long col, long row, double v) { values[Index(nc, col, row)] = v; }
 
 void Matrix::SetLabel(long col, std::string lbl) { col_labels[col] = lbl; }
 
@@ -68,100 +52,116 @@ std::string Matrix::GetLabel(long col) const { return col_labels[col]; }
 
 double Matrix::Det() const
 {
- //only for 2x2 and 3x3 matrix, no more sofisticated algorithms... yet.
- if (nr!=nc || (nc>3 || nr >3)) return -1;
- if (nc==2) return Get(0,0)*Get(1,1)-Get(0,1)*Get(1,0);
- else if(nc==3)
+ if (nr != nc) throw InvalidOperation("Determinant of non-square matrix");
+ if (nr == 0) return 0.0;
+
+ const long n = nr;
+ std::vector<double> a = values;
+ double det = 1.0;
+ for (long i=0;i<n;++i)
  {
-  double a = Get(0,0)*(Get(1,1)*Get(2,2)-Get(1,2)*Get(2,1));
-  double b = Get(0,1)*(Get(1,0)*Get(2,2)-Get(1,2)*Get(2,0));
-  double c = Get(0,2)*(Get(1,0)*Get(2,1)-Get(1,1)*Get(2,0));
-  return a-b+c;
+  long pivot_row = i;
+  double pivot_value = std::abs(a[Index(n, i, i)]);
+  for (long r=i+1;r<n;++r)
+  {
+   double candidate = std::abs(a[Index(n, i, r)]);
+   if (candidate > pivot_value)
+   {
+    pivot_value = candidate;
+    pivot_row = r;
+   }
+  }
+  if (pivot_value <= std::numeric_limits<double>::epsilon()) return 0.0;
+  if (pivot_row != i)
+  {
+   for (long c=0;c<n;++c)
+   {
+    std::swap(a[Index(n, c, i)], a[Index(n, c, pivot_row)]);
+   }
+   det = -det;
+  }
+
+  const double pivot = a[Index(n, i, i)];
+  det *= pivot;
+  if (pivot == 0.0) return 0.0;
+  for (long r=i+1;r<n;++r)
+  {
+   const double factor = a[Index(n, i, r)]/pivot;
+   if (factor == 0.0) continue;
+   for (long c=i;c<n;++c)
+   {
+    a[Index(n, c, r)] -= factor * a[Index(n, c, i)];
+   }
+  }
  }
- else return -1;
+ return det;
 }
 
 void Matrix::Inverse()
 {
- if(nc!=nr || (nc>3 || nr >3))
+ if (nc != nr) throw InvalidOperation("Inverse of non-square matrix");
+ const long n = nr;
+ if (n == 0) throw InvalidOperation("Inverse of empty matrix");
+
+ std::vector<double> a = values;
+ std::vector<double> inverse(static_cast<std::size_t>(n * n), 0.0);
+ for (long i=0;i<n;++i) inverse[Index(n, i, i)] = 1.0;
+
+ const double eps = std::numeric_limits<double>::epsilon();
+ for (long i=0;i<n;++i)
  {
-  std::cerr << "Error with inverse matrix operation" << '\n';
-  exit(0);
+  long pivot_row = i;
+  double pivot_value = std::abs(a[Index(n, i, i)]);
+  for (long r=i+1;r<n;++r)
+  {
+   double candidate = std::abs(a[Index(n, i, r)]);
+   if (candidate > pivot_value)
+   {
+    pivot_value = candidate;
+    pivot_row = r;
+   }
+  }
+  if (pivot_value <= eps) throw InvalidOperation("Matrix is singular and cannot be inverted");
+  if (pivot_row != i)
+  {
+   for (long c=0;c<n;++c)
+   {
+    std::swap(a[Index(n, c, i)], a[Index(n, c, pivot_row)]);
+    std::swap(inverse[Index(n, c, i)], inverse[Index(n, c, pivot_row)]);
+   }
+  }
+
+  const double pivot = a[Index(n, i, i)];
+  if (std::abs(pivot) <= eps) throw InvalidOperation("Matrix is singular and cannot be inverted");
+  for (long c=0;c<n;++c)
+  {
+   a[Index(n, c, i)] /= pivot;
+   inverse[Index(n, c, i)] /= pivot;
+  }
+
+  for (long r=0;r<n;++r)
+  {
+   if (r == i) continue;
+   const double factor = a[Index(n, i, r)];
+   if (std::abs(factor) <= eps) continue;
+   for (long c=0;c<n;++c)
+   {
+    a[Index(n, c, r)] -= factor * a[Index(n, c, i)];
+    inverse[Index(n, c, r)] -= factor * inverse[Index(n, c, i)];
+   }
+  }
  }
- double det = (*this).Det();
- if(det == 0)
- {
-  std::cerr << "Error with inverse matrix operation, det = 0" << '\n';
-  exit(0);
- }
- if(nc==2)
- {
-  double ap = Get(1,1)/det;
-  double bp = -Get(0,1)/det;
-  double cp = -Get(1,0)/det;
-  double dp = Get(0,0)/det;
-  (*this).Set(0,0,ap);
-  (*this).Set(0,1,bp);
-  (*this).Set(1,0,cp);
-  (*this).Set(1,1,dp);
- }
- else if(nc==3)
- {
-  //link : http://www.dr-lex.be/random/matrix_inv.html
-  double ap =  Get(2,2)*Get(1,1)-Get(2,1)*Get(1,2); //a33a22-a32a23
-  double bp =-(Get(2,2)*Get(0,1)-Get(2,1)*Get(0,2));//-(a33a12-a32a13)
-  double cp =  Get(1,2)*Get(0,1)-Get(1,1)*Get(0,2); //a23a12-a22a13
-  double dp =-(Get(2,2)*Get(1,0)-Get(2,0)*Get(1,2));//-(a33a21-a31a23)
-  double ep =  Get(2,2)*Get(0,0)-Get(2,0)-Get(0,2); //a33a11-a31a13
-  double fp =-(Get(1,2)*Get(0,0)-Get(1,0)*Get(0,2));//-(a23a11-a21a13) 
-  double gp =  Get(2,1)*Get(1,0)-Get(2,0)*Get(1,1); //a32a21-a31a22
-  double hp =-(Get(2,1)*Get(0,0)*Get(2,0)*Get(0,1));//-(a32a11-a31a12)
-  double ip =  Get(1,1)*Get(0,0)-Get(1,0)*Get(0,1); //a22a11-a21a12
-  (*this).Set(0,0,ap/det);
-  (*this).Set(0,1,bp/det);
-  (*this).Set(0,2,cp/det);
-  (*this).Set(1,0,dp/det);
-  (*this).Set(1,1,ep/det);
-  (*this).Set(1,2,fp/det);
-  (*this).Set(2,0,gp/det);
-  (*this).Set(2,1,hp/det);
-  (*this).Set(2,2,ip/det);
- }
- else 
- {
-  std::cerr << "Error with inverse matrix operation" << '\n';
-  exit(0);
- }
+
+ values = std::move(inverse);
 }
 
 Matrix & Matrix::operator=(const Matrix & m)
 {
- if ((nr == m.Rows()) && (nc == m.Columns()))
- {
-  for (long i=0;i<nc;++i) col_labels.Append(m.GetLabel(i));
-  for (long j=0;j<m.Rows();++j)
-  {
-   for (long i=0;i<m.Columns();++i) Set(i, j, m.Get(i, j));
-  }
- }
- else
- {
-  if (values != NULL)
-  {
-   for (long j=0;j<Rows();++j) delete [] values[j];
-   delete [] values;
-   values = NULL;
-  }
-  nc = m.Columns();
-  nr = m.Rows();
-  values = new double*[nr];
-  for (long i=0;i<nc;++i) col_labels.Append(m.GetLabel(i));
-  for (long j=0;j<nr;++j)
-  {
-   values[j] = new double[nc]; 
-   for (long i=0;i<nc;++i) values[j][i] = m.Get(i, j);
-  }
- }
+ if (this == &m) return *this;
+ nr = m.nr;
+ nc = m.nc;
+ values = m.values;
+ col_labels = m.col_labels;
  return (*this);
 }
 
@@ -170,7 +170,6 @@ Matrix & Matrix::operator+=(const Matrix & m)
  if ((Rows() == 0) && (Columns() == 0)) return (this->operator=(m));
  else if ((Rows() == m.Rows()) && (Columns() == m.Columns()))
  {
-  for (long i=0;i<Columns();++i) col_labels.Append(m.GetLabel(i));
   for (long j=0;j<m.Rows();++j)
     for (long i=0;i<m.Columns();++i) Set(i, j, Get(i, j) + m.Get(i, j));
   return (*this);

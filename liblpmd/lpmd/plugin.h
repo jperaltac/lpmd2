@@ -21,6 +21,9 @@ class Plugin: public Module
    bool Used() const;
    void SetUsed();
 
+   void SetLibraryHandle(void * handle);
+   void * LibraryHandle() const;
+
    virtual bool AutoTest();
    virtual void CheckConsistency();
 
@@ -28,6 +31,7 @@ class Plugin: public Module
 
  private: 
    bool used;
+   void * library_handle;
 };
 
 Plugin * PluginLoader(std::string path, std::string args);
