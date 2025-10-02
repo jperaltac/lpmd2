@@ -1,0 +1,11 @@
+[package]
+name = "lpmd_stats"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "lpmd_stats"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+csta = "1.0.1"
