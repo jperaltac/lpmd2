@@ -21,8 +21,16 @@ list(SORT PLUGIN_SOURCES)
 # the structure below makes it straightforward to extend if additional
 # third‑party dependencies are introduced later on.
 set(ZLIB_PLUGINS lammps lpmd)
+set(OPENGL_PLUGINS display lpvisual)
 
 find_package(ZLIB REQUIRED)
+find_package(OpenGL)
+find_package(GLUT)
+
+set(HAVE_OPENGL OFF)
+if(OpenGL_FOUND AND GLUT_FOUND)
+    set(HAVE_OPENGL ON)
+endif()
 
 foreach(plugin_src ${PLUGIN_SOURCES})
     get_filename_component(plugin_name "${plugin_src}" NAME_WE)
@@ -30,6 +38,11 @@ foreach(plugin_src ${PLUGIN_SOURCES})
     # targets) while preserving the output file name expected by LPMD at
     # runtime.
     string(REPLACE "-" "_" plugin_target "plugin_${plugin_name}")
+
+    if(plugin_name IN_LIST OPENGL_PLUGINS AND NOT HAVE_OPENGL)
+        message(WARNING "Skipping '${plugin_name}' plugin: OpenGL/GLUT headers not found")
+        continue()
+    endif()
 
     add_library(${plugin_target} MODULE "${plugin_src}")
     target_link_libraries(${plugin_target} PRIVATE lpmd::core)
@@ -45,5 +58,9 @@ foreach(plugin_src ${PLUGIN_SOURCES})
 
     if(plugin_name IN_LIST ZLIB_PLUGINS)
         target_link_libraries(${plugin_target} PRIVATE ZLIB::ZLIB)
+    endif()
+
+    if(plugin_name IN_LIST OPENGL_PLUGINS)
+        target_link_libraries(${plugin_target} PRIVATE OpenGL::GL OpenGL::GLU GLUT::GLUT)
     endif()
 endforeach()
