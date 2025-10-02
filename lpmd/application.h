@@ -8,6 +8,7 @@
 #define __LPMDUTIL_APPLICATION_H__
 
 #include <lpmd/pluginmanager.h>
+#include <runtime/runtime_context.h>
 #include <lpmd/simulation.h>
 #include <lpmd/nonorthogonalcell.h>
 #include "controlparser.h"
@@ -60,9 +61,10 @@ class Application
    const std::string cmdname;
    std::string * indexbuffer;
    long int old_atoms_size;
-   PluginManager pluginmanager;
-   Simulation * simulation;
-   NonOrthogonalCell cell;
+  PluginManager pluginmanager;
+  Simulation * simulation;
+  RuntimeContext runtime_context;
+  NonOrthogonalCell cell;
    Array<std::ostream *> propertystream; 
    std::ofstream ** outputstream;
    std::istream * inputfile_stream;

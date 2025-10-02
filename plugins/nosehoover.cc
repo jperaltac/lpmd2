@@ -6,7 +6,7 @@
 
 #include <lpmd/simulation.h>
 #include <lpmd/potential.h>
-#include <lpmd/session.h>
+#include <runtime/runtime_context.h>
 #include <lpmd/properties.h>
 
 using namespace lpmd;
@@ -76,7 +76,7 @@ void NoseHoover::Initialize(Simulation & sim, Potential & p)
 
 void NoseHoover::AdvancePosition(Simulation & sim, long i)
 {
- const double kboltzmann = double(GlobalSession["kboltzmann"]);
+ const double kboltzmann = double(sim.Context().session()["kboltzmann"]);
  
  Configuration & oldsc = OldConfig();
  BasicCell & cell = sim.Cell();

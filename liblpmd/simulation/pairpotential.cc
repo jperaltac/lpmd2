@@ -2,7 +2,7 @@
 //
 //
 
-#include <lpmd/session.h>
+#include <runtime/runtime_context.h>
 #include <lpmd/pairpotential.h>
 #include <lpmd/atompair.h>
 #include <lpmd/matrix.h>
@@ -33,7 +33,7 @@ double PairPotential::AtomEnergy(Configuration & conf, long i)
 
 void PairPotential::UpdateForces(Configuration & conf)
 {
- const double forcefactor = GlobalSession["forcefactor"];
+ const double forcefactor = conf.Context().session()["forcefactor"];
  BasicParticleSet & atoms = conf.Atoms();
  const long int n = atoms.Size();
  energycache = 0.0;

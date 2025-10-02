@@ -4,6 +4,7 @@
 
 #include <lpmd/array.h>
 #include <lpmd/pluginmanager.h>
+#include <runtime/runtime_context.h>
 #include <lpmd/timer.h>
 #include <lpmd/simulationbuilder.h>
 #include <lpmd/properties.h>
@@ -36,7 +37,8 @@ template <typename AtomContainer, typename CellType> void CheckAllInside(AtomCon
 
 int main()
 {
- Simulation & md = SimulationBuilder::CreateFixedOrthogonal(NX*NY*NZ*4, Atom("Ar"));
+ RuntimeContext context;
+ Simulation & md = SimulationBuilder::CreateFixedOrthogonal(context, NX*NY*NZ*4, Atom("Ar"));
 
  BasicCell & cell = md.Cell();
  cell[0] = NX*5.7063666667*e1;

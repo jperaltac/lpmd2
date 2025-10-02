@@ -29,7 +29,9 @@ set(LPMD_PLUGIN_SOURCES
 
 set(LPMD_RUNTIME_SOURCES
     runtime/cmdline.cc
+    runtime/runtime_context.cc
     runtime/session.cc
+    runtime/units.cc
 )
 
 set(LPMD_SIMULATION_SOURCES

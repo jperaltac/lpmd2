@@ -6,6 +6,7 @@
 #include <lpmd/cellgenerator.h>
 #include <lpmd/cellmanager.h>
 #include <lpmd/pluginmanager.h>
+#include <runtime/runtime_context.h>
 #include <lpmd/manipulations.h>
 
 #include <iostream>
@@ -65,7 +66,8 @@ template <typename AtomContainer, typename CellType> void CheckAllInside(AtomCon
 int main()
 {
  PluginManager pm;
- Simulation & md = SimulationBuilder::CreateFixedOrthogonal(108, Atom("Ar"));
+ RuntimeContext context;
+ Simulation & md = SimulationBuilder::CreateFixedOrthogonal(context, 108, Atom("Ar"));
 
  BasicCell & cell = md.Cell();
  cell[0] = 17.1191*e1;

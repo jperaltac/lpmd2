@@ -8,7 +8,7 @@
 #include <lpmd/util.h>
 #include <lpmd/simulation.h>
 #include <lpmd/plugin.h>
-#include <lpmd/session.h>
+#include <runtime/runtime_context.h>
 
 #include <sstream>
 
@@ -177,8 +177,8 @@ void TempProfile::Evaluate(Configuration & con, Potential & pot)
   for (int j=0;j<(int)(nsp);j++) temp[i][j]=0.0e0;
  }
  int s=0;
- const double kin2ev = double(GlobalSession["kin2ev"]);
- const double kboltzmann = double(GlobalSession["kboltzmann"]);
+ const double kin2ev = double(con.Context().session()["kin2ev"]);
+ const double kboltzmann = double(con.Context().session()["kboltzmann"]);
  for (int i=0;i<elements.Size();++i)	   
  {
   //Asigna la especie correspondiente.

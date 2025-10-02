@@ -6,7 +6,7 @@
 
 #include <lpmd/simulation.h>
 #include <lpmd/properties.h>
-#include <lpmd/session.h>
+#include <runtime/runtime_context.h>
 
 #include <cmath>
 #include <iostream>
@@ -65,7 +65,7 @@ void Metropolis::Initialize(Simulation & sim, Potential & p) { assert(&p != 0); 
 
 void Metropolis::Advance(Simulation & sim, long i)
 {
- const double kboltzmann = double(GlobalSession["kboltzmann"]);
+ const double kboltzmann = double(sim.Context().session()["kboltzmann"]);
  lpmd::BasicParticleSet & atoms = sim.Atoms();
  lpmd::CombinedPotential & pots = sim.Potentials();
  lpmd::BasicCell & cell = sim.Cell();

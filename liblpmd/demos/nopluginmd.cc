@@ -4,6 +4,8 @@
 
 #include <lpmd/timer.h>
 #include <lpmd/properties.h>
+#include <runtime/runtime_context.h>
+#include <runtime/units.h>
 #include <lpmd/simulationbuilder.h>
 #include <lpmd/fixedsizeparticleset.h>
 #include <lpmd/orthogonalcell.h>
@@ -12,7 +14,7 @@
 
 const double sigma = 3.41;
 const double epsilon = 0.0103408;
-const double forcefactor = 0.0096485341;
+const double forcefactor = DefaultUnitSystem().forcefactor;
 
 using namespace lpmd;
 
@@ -112,7 +114,8 @@ template <typename AtomContainer, typename CellType> void GenerateFCC(AtomContai
 
 int main()
 {
- Simulation & md = SimulationBuilder::CreateFixedOrthogonal(108, Atom("Ar"));
+ RuntimeContext context;
+ Simulation & md = SimulationBuilder::CreateFixedOrthogonal(context, 108, Atom("Ar"));
 
  FixedSizeParticleSet & atoms = dynamic_cast<FixedSizeParticleSet&> (md.Atoms());
  OrthogonalCell & cell = dynamic_cast<OrthogonalCell &> (md.Cell());

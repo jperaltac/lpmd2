@@ -4,30 +4,41 @@
 
 #include <lpmd/session.h>
 #include "config.h"
+#include <iomanip>
+#include <sstream>
 
 using namespace lpmd;
 
-Session lpmd::GlobalSession;
-
 class lpmd::SessionImpl
 {
- public: 
+ public:
 };
 
-Session::Session(): Module("session") 
+namespace
 {
- simpl = NULL; 
- ProcessArguments("module session"); 
- 
+ std::string FormatDouble(double value)
+ {
+  std::ostringstream out;
+  out.setf(std::ios::fixed, std::ios::floatfield);
+  out << std::setprecision(8) << value;
+  return out.str();
+ }
+}
+
+Session::Session(const UnitSystem & units): Module("session")
+{
+ simpl = NULL;
+ ProcessArguments("module session");
+
  AssignParameter("libraryversion", VERSION);
 
- AssignParameter("forcefactor", "0.0096485341");  // Conversion: 1 (eV/angstrom) = FORCEFACTOR (amu*angstrom/(fs^2))
- AssignParameter("kboltzmann", "8.6173422E-05");  // k_B in (eV/K)
- AssignParameter("kin2ev", "103.64269");          // Conversion: 1 (amu*(angstrom/fs)^2) = KIN2EV (eV)
- AssignParameter("pressfactor", "160217.65");     // Conversion: 1 (ev/(angstrom^3)) = PRESSFACTOR (MPa)
- AssignParameter("ua3togrcm3", "1.6605");         // Conversion: 1 uma/A^3 = Ua3ToGRcm3
- AssignParameter("q2a2force", "0.13893546");      // Conversion: 1 (qe*qe/angstrom*angstrom) = Q2a2FORCE (uma * angstrom / (fs^2))
- AssignParameter("q2a2ev", "14.4004");            // Conversion: 1 (qe*qe/(angstrom)) = Q2a2EV (eV)
+ AssignParameter("forcefactor", FormatDouble(units.forcefactor));
+ AssignParameter("kboltzmann", FormatDouble(units.kboltzmann));
+ AssignParameter("kin2ev", FormatDouble(units.kin2ev));
+ AssignParameter("pressfactor", FormatDouble(units.pressfactor));
+ AssignParameter("ua3togrcm3", FormatDouble(units.ua3togrcm3));
+ AssignParameter("q2a2force", FormatDouble(units.q2a2force));
+ AssignParameter("q2a2ev", FormatDouble(units.q2a2ev));
 }
 
 Session::~Session() { }

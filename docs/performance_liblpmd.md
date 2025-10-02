@@ -13,6 +13,14 @@ potential port to Rust.
     still covers several hundred integration steps and offers a stable
     distribution of costs for the inner loops.【14ad63†L1-L27】
 
+## Regression checks
+
+Run the automated LPUnit suite before and after profiling experiments to
+confirm that instrumentation or optimisation work has not regressed
+functional behaviour. The suite is enabled via `LPMD_ENABLE_TESTS`; see
+the [Testing](COMPILATION.md#testing) section of `docs/COMPILATION.md` for
+commands that build and execute the targets.
+
 ## Primary hotspots
 
 | Inclusive IR % | Function | Notes |

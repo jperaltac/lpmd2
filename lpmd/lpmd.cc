@@ -15,7 +15,7 @@
 #include <lpmd/property.h>
 #include <lpmd/storedvalue.h>
 #include <lpmd/value.h>
-#include <lpmd/session.h>
+#include <runtime/runtime_context.h>
 
 #include <fstream>
 
@@ -52,7 +52,7 @@ void LPMD::RestoreSimulation()
   simulation->Restore(control["restore-file"]);
  }
  if (bool(innercontrol["optimize-simulation"])) OptimizeSimulationAtStart();
- else GlobalSession.DebugStream() << "-> NOT optimizing simulation, by user request\n";
+ else runtime_context.session().DebugStream() << "-> NOT optimizing simulation, by user request\n";
  simulation->Cell().Periodicity(0) = bool(innercontrol["periodic-x"]); 
  simulation->Cell().Periodicity(1) = bool(innercontrol["periodic-y"]); 
  simulation->Cell().Periodicity(2) = bool(innercontrol["periodic-z"]); 

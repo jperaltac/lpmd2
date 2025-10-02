@@ -7,7 +7,7 @@
 #include <lpmd/properties.h>
 #include <lpmd/atompair.h>
 #include <lpmd/configuration.h>
-#include <lpmd/session.h>
+#include <runtime/runtime_context.h>
 
 using namespace lpmd;
 
@@ -42,7 +42,7 @@ double MetalPotential::AtomEnergy(Configuration & conf, long i)
 
 void MetalPotential::UpdateForces(Configuration & conf)
 {
- const double forcefactor = double(GlobalSession["forcefactor"]);
+ const double forcefactor = double(conf.Context().session()["forcefactor"]);
  BasicParticleSet & atoms = conf.Atoms();
  const long n = atoms.Size();
 
@@ -80,16 +80,17 @@ void MetalPotential::UpdateForces(Configuration & conf)
   Vector tmp=UpdateCorrections(mpd,n,sinv);
   //du=tmp[1];
   //dvir=tmp[2];
-  GlobalSession.DebugStream() << '\n';
-  GlobalSession.DebugStream() << "================================================================================" << '\n';
-  GlobalSession.DebugStream() << "=====================  METALLIC  CORRECTIONS.  ================================="<<'\n';
-  GlobalSession.DebugStream() << "================================================================================" <<'\n';
+  std::ostream & debug = conf.Context().session().DebugStream();
+  debug << '\n';
+  debug << "================================================================================" << '\n';
+  debug << "=====================  METALLIC  CORRECTIONS.  ================================="<<'\n';
+  debug << "================================================================================" <<'\n';
 
-  GlobalSession.DebugStream() << "Mean particle density = " << mpd << '\n';
-  GlobalSession.DebugStream() << "Sum 1/sqrt(rhoi)      = " << sinv << '\n';
-  GlobalSession.DebugStream() << "Delta rhoi            = " << tmp[0] << '\n';
-  GlobalSession.DebugStream() << "Delta U1              = " << tmp[1] << '\n';
-  GlobalSession.DebugStream() << "Delta Virial 1 + 2    = " << tmp[2] << '\n';
+  debug << "Mean particle density = " << mpd << '\n';
+  debug << "Sum 1/sqrt(rhoi)      = " << sinv << '\n';
+  debug << "Delta rhoi            = " << tmp[0] << '\n';
+  debug << "Delta U1              = " << tmp[1] << '\n';
+  debug << "Delta Virial 1 + 2    = " << tmp[2] << '\n';
   initial=false;
  }
 

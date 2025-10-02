@@ -5,7 +5,7 @@
 #include "osciforce.h"
 
 #include <lpmd/simulation.h>
-#include <lpmd/session.h>
+#include <runtime/runtime_context.h>
 
 #include <iostream>
 
@@ -78,7 +78,7 @@ double OsciForcePotential::AtomEnergy(lpmd::Configuration & con, long i) { retur
 void OsciForcePotential::UpdateForces(Configuration & con) 
 { 
  lpmd::BasicParticleSet & atoms = con.Atoms();
- const double forcefactor = double(GlobalSession["forcefactor"]);
+ const double forcefactor = double(con.Context().session()["forcefactor"]);
  lpmd::Vector tmpforce = force*sin(2*M_PI*(double(counter/n)) + phase);
  for (long int i=0;i<atoms.Size();++i)
  {

@@ -9,7 +9,7 @@
 
 #include <lpmd/simulation.h>
 #include <lpmd/potential.h>
-#include <lpmd/session.h>
+#include <runtime/runtime_context.h>
 
 using namespace lpmd;
 
@@ -26,9 +26,10 @@ ReplayIntegrator::ReplayIntegrator(Plugin & inpplugin, std::istream & inpstream)
  catch (std::exception & e) { cellreader = 0; }
 }
 
-void ReplayIntegrator::Advance(Simulation & sim, Potential & pot) 
-{ 
+void ReplayIntegrator::Advance(Simulation & sim, Potential & pot)
+{
  assert(&pot != 0);//icc 869
+ RuntimeContextScope context_scope(sim.Context());
  if (cellreader != 0)
  {
   BasicParticleSet & atoms = sim.Atoms();
@@ -38,7 +39,7 @@ void ReplayIntegrator::Advance(Simulation & sim, Potential & pot)
   if (mystepper.IsActiveInStep(nconf))
   {
    status = cellreader->ReadCell(inputstream, sim);
-   GlobalSession.DebugStream() << "-> Read configuration " << nconf;
+   sim.Context().session().DebugStream() << "-> Read configuration " << nconf;
   }
   else 
   {
@@ -46,12 +47,12 @@ void ReplayIntegrator::Advance(Simulation & sim, Potential & pot)
    {
     status = cellreader->SkipCell(inputstream);
     sim.Cell()[0] = Vector(0.0, 0.0, 0.0); // This flags the config as invalid!
-    GlobalSession.DebugStream() << "-> Skipped configuration " << nconf << "\n";
+    sim.Context().session().DebugStream() << "-> Skipped configuration " << nconf << "\n";
    }
    catch (NotImplemented & e)
    {
     status = cellreader->ReadCell(inputstream, sim);
-    GlobalSession.DebugStream() << "-> Read (could not skip) configuration " << nconf << "\n";
+    sim.Context().session().DebugStream() << "-> Read (could not skip) configuration " << nconf << "\n";
    }
    nconf++; 
    if ((! status) || ((mystepper.end != -1) && (nconf > mystepper.end)))
@@ -67,9 +68,10 @@ void ReplayIntegrator::Advance(Simulation & sim, Potential & pot)
 void ReplayIntegrator::PreRead(Simulation & simulation)
 {
  assert(cellreader != 0);
+ RuntimeContextScope context_scope(simulation.Context());
  history.Append(simulation);
  cellreader->ReadMany(inputstream, history, mystepper, true);
- GlobalSession.DebugStream() << "-> Read " << history.Size() << " configurations.\n";
+ simulation.Context().session().DebugStream() << "-> Read " << history.Size() << " configurations.\n";
 }
 
 SimulationHistory & ReplayIntegrator::History() { return history; }

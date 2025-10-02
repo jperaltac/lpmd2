@@ -15,10 +15,12 @@
 
 namespace lpmd
 {
+ class RuntimeContext;
+
  class Configuration: public TagHandler<Configuration>
  {
   public:
-    Configuration(): cellman(0), stresstensor(3, 3) { }
+    Configuration(): cellman(0), stresstensor(3, 3), runtime_context_(0) { }
     virtual ~Configuration() { };
 
     virtual BasicParticleSet & Atoms() = 0; 
@@ -28,6 +30,25 @@ namespace lpmd
 
     inline unsigned long int ID() const { return (unsigned long int)(this); }
     void ShowInfo(std::ostream & out);
+
+    void SetRuntimeContext(lpmd::RuntimeContext & context)
+    {
+     runtime_context_ = &context;
+    }
+
+    bool HasRuntimeContext() const { return runtime_context_ != 0; }
+
+    lpmd::RuntimeContext & Context()
+    {
+     if (runtime_context_ == 0) throw MissingComponent("runtime_context");
+     return *runtime_context_;
+    }
+
+    const lpmd::RuntimeContext & Context() const
+    {
+     if (runtime_context_ == 0) throw MissingComponent("runtime_context");
+     return *runtime_context_;
+    }
 
     double & Virial() { return virial; }
     const double & Virial() const { return virial; }
@@ -67,6 +88,7 @@ namespace lpmd
     NeighborList neighlist;
     double virial;
     Matrix stresstensor;
+    lpmd::RuntimeContext * runtime_context_;
  };
 }  // lpmd
 
