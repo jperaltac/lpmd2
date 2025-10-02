@@ -951,7 +951,12 @@ void DrawStatistics(void)
    glLoadIdentity();
    glOrtho(0,sseg->width1,-sseg->height1,0,-10,10);
    glMatrixMode(GL_MODELVIEW);
-   GLfloat pos[] = {1.5*sseg->width1, -sseg->height1/2, 10, 0};
+   const GLfloat pos[] = {
+    static_cast<GLfloat>(1.5 * sseg->width1),
+    static_cast<GLfloat>(-0.5 * static_cast<double>(sseg->height1)),
+    10.0f,
+    0.0f
+   };
    glLightfv(GL_LIGHT0,GL_POSITION,pos);
    
    glPushMatrix();

@@ -125,7 +125,7 @@ void LPMDFormat::ShowHelp() const
 
 void LPMDFormat::ReadHeader(std::istream & is) const
 {
- char first[2] = { NULL, NULL };
+ char first[2] = { '\0', '\0' };
  is.read(first, 1);
  if (first[0] == 'Z')
  {
