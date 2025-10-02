@@ -12,9 +12,6 @@
 #include <lpmd/potential.h>
 #include <lpmd/atompair.h>
 
-// FIXME: no corresponde aqui
-const double kboltzmann = 8.6173422E-05;
-
 namespace lpmd
 {
  class Integrator;  // forward

@@ -5,7 +5,7 @@
 #include <lpmd/twostepintegrator.h>
 #include <lpmd/simulation.h>
 #include <lpmd/potential.h>
-#include <lpmd/session.h>
+#include <runtime/runtime_context.h>
 
 using namespace lpmd;
 
@@ -20,7 +20,7 @@ void TwoStepIntegrator::Advance(Simulation & sim, Potential & p)
  // Setea a cero las aceleraciones de los atomos con fixedvel
  if (atoms.HaveAny(Tag("fixedvel"))) 
  {
-  GlobalSession.DebugStream() << "-> Considering the fixedvel flag on some atoms\n";
+  sim.Context().session().DebugStream() << "-> Considering the fixedvel flag on some atoms\n";
   for (i=0;i<atoms.Size();++i)
   {
    at = atoms[i];
@@ -30,7 +30,7 @@ void TwoStepIntegrator::Advance(Simulation & sim, Potential & p)
 
  if (atoms.HaveAny(Tag("fixedpos")))
  {
-  GlobalSession.DebugStream() << "-> Considering the fixedpos flag on some atoms\n";
+  sim.Context().session().DebugStream() << "-> Considering the fixedpos flag on some atoms\n";
   for (i=0;i<atoms.Size();++i)
   {
    at = atoms[i];
@@ -48,7 +48,7 @@ void TwoStepIntegrator::Advance(Simulation & sim, Potential & p)
  // Setea a cero las aceleraciones de los atomos con fixedvel
  if (atoms.HaveAny(Tag("fixedvel"))) 
  {
-  GlobalSession.DebugStream() << "-> Considering the fixedvel flag on some atoms\n";
+  sim.Context().session().DebugStream() << "-> Considering the fixedvel flag on some atoms\n";
   for (i=0;i<atoms.Size();++i)
   {
    at = atoms[i];
@@ -58,7 +58,7 @@ void TwoStepIntegrator::Advance(Simulation & sim, Potential & p)
 
  if (atoms.HaveAny(Tag("fixedpos")))
  {
-  GlobalSession.DebugStream() << "-> Considering the fixedpos flag on some atoms\n";
+  sim.Context().session().DebugStream() << "-> Considering the fixedpos flag on some atoms\n";
   for (i=0;i<atoms.Size();++i)
   {
    at = atoms[i];

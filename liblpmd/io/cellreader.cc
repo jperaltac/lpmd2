@@ -5,7 +5,7 @@
 #include <lpmd/cellreader.h>
 #include <lpmd/simulationhistory.h>
 #include <lpmd/storedconfiguration.h>
-#include <lpmd/session.h>
+#include <runtime/runtime_context.h>
 #include <lpmd/error.h>
 
 #include <fstream>
@@ -55,7 +55,8 @@ void CellReader::ReadMany(std::istream & inputstream, SimulationHistory & hist, 
   if (stepper.IsActiveInStep(nconf))
   {
    if (!ReadCell(inputstream, sconf)) break;
-   GlobalSession.DebugStream() << "-> Read configuration " << nconf << "\n";
+   if (HasCurrentContext())
+    CurrentContext().session().DebugStream() << "-> Read configuration " << nconf << "\n";
    hist.Append(sconf);
    if (sconf.Have(sconf, Tag("level"))) 
       hist[hist.Size()-1].SetTag(hist[hist.Size()-1], Tag("level"), sconf.GetTag(sconf, Tag("level")));
@@ -63,7 +64,8 @@ void CellReader::ReadMany(std::istream & inputstream, SimulationHistory & hist, 
   else 
   {
    if (!SkipCell(inputstream)) break;
-   GlobalSession.DebugStream() << "-> Skipped configuration " << nconf << "\n";
+   if (HasCurrentContext())
+    CurrentContext().session().DebugStream() << "-> Skipped configuration " << nconf << "\n";
   }
   nconf++;
  }

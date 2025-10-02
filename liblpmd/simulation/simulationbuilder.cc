@@ -21,26 +21,26 @@ using namespace lpmd;
 template <typename AtomContainer=lpmd::ParticleSet, typename CellType=lpmd::Cell> class SimulationEngine: public Simulation
 {
  public:
-  SimulationEngine(): atoms(0), cell(0), integ(0), velocitiesSet(false), initialized(false), step(0)
+  explicit SimulationEngine(RuntimeContext & context): atoms(0), cell(0), integ(0), velocitiesSet(false), initialized(false), step(0)
   {
-   // This hints SimulationEngine that the number of atoms is variable
-   atoms = new AtomContainer();  // maybe ParticleSet, or another type of ParticleSet
+   SetRuntimeContext(context);
+   atoms = new AtomContainer();
    cell = new CellType();
    SetTag(*this, Tag("step"), step);
   }
 
-  SimulationEngine(long int natoms): atoms(0), cell(0), integ(0), velocitiesSet(false), initialized(false), step(0)
+  SimulationEngine(RuntimeContext & context, long int natoms): atoms(0), cell(0), integ(0), velocitiesSet(false), initialized(false), step(0)
   {
-   // This fixes the number of atoms for SimulationEngine
-   atoms = new AtomContainer(natoms);  // maybe ParticleSet, or another type of ParticleSet
+   SetRuntimeContext(context);
+   atoms = new AtomContainer(natoms);
    cell = new CellType();
    SetTag(*this, Tag("step"), step);
   }
 
-  SimulationEngine(long int natoms, const BasicAtom & t): atoms(0), cell(0), integ(0), velocitiesSet(false), initialized(false), step(0)
+  SimulationEngine(RuntimeContext & context, long int natoms, const BasicAtom & t): atoms(0), cell(0), integ(0), velocitiesSet(false), initialized(false), step(0)
   {
-   // This fixes the number of atoms for SimulationEngine
-   atoms = new AtomContainer(natoms, t);  // maybe ParticleSet, or another type of ParticleSet
+   SetRuntimeContext(context);
+   atoms = new AtomContainer(natoms, t);
    cell = new CellType();
    SetTag(*this, Tag("step"), step);
   }
@@ -82,9 +82,9 @@ template <typename AtomContainer=lpmd::ParticleSet, typename CellType=lpmd::Cell
  const CombinedPotential & Potentials() const { return potarray; }
 
  void SetSimulationTags()
- {
-  const double pressfactor = double(GlobalSession["pressfactor"]);
-  const double densityfact = double(GlobalSession["ua3togrcm3"]);
+{
+  const double pressfactor = double(Context().session()["pressfactor"]);
+  const double densityfact = double(Context().session()["ua3togrcm3"]);
   const double v = Cell().Volume();
   const Vector P = Momentum(Atoms(),(Atoms().HaveAny(Tag("fixedvel")) || Atoms().HaveAny(Tag("fixedpos"))));
   SetTag(*this, Tag("step"), step);
@@ -163,7 +163,8 @@ template <typename AtomContainer=lpmd::ParticleSet, typename CellType=lpmd::Cell
    Vector vel, totalp;
    long nparts = atoms->Size();
    double targettemp = 1.0;
-   double Kpart = (3.0/2.0)*kboltzmann*targettemp;
+  const double kboltzmann = Context().units().kboltzmann;
+  double Kpart = (3.0/2.0)*kboltzmann*targettemp;
    for (int i=0;i<nparts;++i)
    {
     double v2 = 2.0*Kpart/(*atoms)[i].Mass();
@@ -319,39 +320,39 @@ SimulationBuilder::~SimulationBuilder()
  for (long int i=0;i<impl.s_array.Size();++i) delete impl.s_array[i];
 }
 
-Simulation & SimulationBuilder::CreateFixedOrthogonal(long int atoms, const BasicAtom & at)
+Simulation & SimulationBuilder::CreateFixedOrthogonal(RuntimeContext & context, long int atoms, const BasicAtom & at)
 {
- Simulation * simp = new SimulationEngine<FixedSizeParticleSet, OrthogonalCell>(atoms, at);
+ Simulation * simp = new SimulationEngine<FixedSizeParticleSet, OrthogonalCell>(context, atoms, at);
  impl.s_array.Append(simp);
  return (*simp);
 }
 
-Simulation & SimulationBuilder::CreateGeneric(long int atoms, const BasicAtom & at)
+Simulation & SimulationBuilder::CreateGeneric(RuntimeContext & context, long int atoms, const BasicAtom & at)
 {
- Simulation * simp = new SimulationEngine<ParticleSet, NonOrthogonalCell>(atoms, at);
+ Simulation * simp = new SimulationEngine<ParticleSet, NonOrthogonalCell>(context, atoms, at);
  impl.s_array.Append(simp);
  return (*simp);
 }
 
-Simulation & SimulationBuilder::CreateGeneric()
+Simulation & SimulationBuilder::CreateGeneric(RuntimeContext & context)
 {
- Simulation * simp = new SimulationEngine<ParticleSet, NonOrthogonalCell>();
+ Simulation * simp = new SimulationEngine<ParticleSet, NonOrthogonalCell>(context);
  impl.s_array.Append(simp);
  return (*simp);
 }
 
-Simulation & SimulationBuilder::CloneOptimized(const Simulation & sim)
+Simulation & SimulationBuilder::CloneOptimized(RuntimeContext & context, const Simulation & sim)
 {
  const BasicParticleSet & atoms = sim.Atoms();
  const BasicCell & cell = sim.Cell();
  Simulation * simp = 0;
- if (cell.IsOrthogonal()) 
+ if (cell.IsOrthogonal())
  {
-  simp = new SimulationEngine<FixedSizeParticleSet, OrthogonalCell>(atoms.Size(), atoms[0]);
+  simp = new SimulationEngine<FixedSizeParticleSet, OrthogonalCell>(context, atoms.Size(), atoms[0]);
  }
  else
  {
-  simp = new SimulationEngine<FixedSizeParticleSet, NonOrthogonalCell>(atoms.Size(), atoms[0]);
+  simp = new SimulationEngine<FixedSizeParticleSet, NonOrthogonalCell>(context, atoms.Size(), atoms[0]);
  }
 
  simp->AdjustCurrentStep(int(Parameter(sim.GetTag(sim, Tag("step")))));

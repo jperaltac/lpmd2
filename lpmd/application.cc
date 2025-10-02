@@ -18,7 +18,7 @@
 #include <lpmd/property.h>
 #include <lpmd/storedvalue.h>
 #include <lpmd/value.h>
-#include <lpmd/session.h>
+#include <runtime/runtime_context.h>
 #include <lpmd/refparticleset.h>
 
 #include <iostream>
@@ -34,7 +34,7 @@ Application::Application(const std::string & appname, const std::string & cmd, U
  indexbuffer = 0;
  replay = 0;
  old_atoms_size = -1;
- GlobalSession.AssignParameter("debug", "none");
+ runtime_context.session().AssignParameter("debug", "none");
  srand48(long(time(NULL)));
 }
 
@@ -47,8 +47,9 @@ Application::~Application()
 
 int Application::Run()
 {
+ RuntimeContextScope context_scope(runtime_context);
  CheckConsistency();
- // 
+ //
  ConstructCell();
  ConstructSimulation();
  FillAtoms();
@@ -106,14 +107,14 @@ void Application::ProcessControl(int argc, const char * argv[], const std::strin
  }
  if (quick.Defined("verbose")) 
  {
-  GlobalSession.AssignParameter("debug", "stderr");
+  runtime_context.session().AssignParameter("debug", "stderr");
   innercontrol["verbose"] = "true";
  }
 }
 
 void Application::CheckConsistency()
 {
- GlobalSession.DebugStream() << '\n' << innercontrol << '\n';
+ runtime_context.session().DebugStream() << '\n' << innercontrol << '\n';
 }
 
 void Application::ConstructCell()
@@ -187,7 +188,7 @@ void Application::ConstructCell()
 void Application::ConstructSimulation()
 {
  NonOrthogonalCell temporary_cell(cell[0], cell[1], cell[2]);
- simulation = &(SimulationBuilder::CreateGeneric());
+ simulation = &(SimulationBuilder::CreateGeneric(runtime_context));
  for (int q=0;q<3;++q) simulation->Cell()[q] = temporary_cell[q];
 }
 
@@ -204,7 +205,7 @@ void Application::FillAtoms()
  }
  cg.Generate(*simulation);
  if (bool(innercontrol["optimize-simulation"])) OptimizeSimulationAtStart();
- else GlobalSession.DebugStream() << "-> NOT optimizing simulation, by user request\n";
+ else runtime_context.session().DebugStream() << "-> NOT optimizing simulation, by user request\n";
  simulation->Cell().Periodicity(0) = bool(innercontrol["periodic-x"]); 
  simulation->Cell().Periodicity(1) = bool(innercontrol["periodic-y"]); 
  simulation->Cell().Periodicity(2) = bool(innercontrol["periodic-z"]); 
@@ -218,7 +219,7 @@ void Application::FillAtomsFromCellReader()
  if (pluginmanager.HasType<CellReader>("input1"))
  {
   CellReader & cellreader = CastModule<CellReader>(inputmodule);
-  GlobalSession.DebugStream() << "-> Reading input file: " << inputmodule["file"] << '\n';
+ runtime_context.session().DebugStream() << "-> Reading input file: " << inputmodule["file"] << '\n';
   inputfile_stream = new std::ifstream(inputmodule["file"].c_str());
   cellreader.ReadHeader(*inputfile_stream);
   if (innercontrol.Defined("replay") && (innercontrol["replay"] == "true")) 
@@ -228,7 +229,7 @@ void Application::FillAtomsFromCellReader()
   else
   {
    cellreader.ReadCell(*inputfile_stream, *simulation);
-   GlobalSession.DebugStream() << "-> Read a single configuration\n";
+   runtime_context.session().DebugStream() << "-> Read a single configuration\n";
   }
  }
  else
@@ -237,7 +238,7 @@ void Application::FillAtomsFromCellReader()
   generator.Generate(*simulation);
  }
  if (bool(innercontrol["optimize-simulation"])) OptimizeSimulationAtStart();
- else GlobalSession.DebugStream() << "-> NOT optimizing simulation, by user request\n";
+ else runtime_context.session().DebugStream() << "-> NOT optimizing simulation, by user request\n";
  // Assign periodicity
  simulation->Cell().Periodicity(0) = bool(innercontrol["periodic-x"]); 
  simulation->Cell().Periodicity(1) = bool(innercontrol["periodic-y"]); 
@@ -257,8 +258,8 @@ void Application::PreReadConfigurations()
 
 void Application::OptimizeSimulationAtStart()
 {
- GlobalSession.DebugStream() << "-> Optimizing simulation before starting...\n";
- simulation = &(SimulationBuilder::CloneOptimized(*simulation));
+ runtime_context.session().DebugStream() << "-> Optimizing simulation before starting...\n";
+ simulation = &(SimulationBuilder::CloneOptimized(runtime_context, *simulation));
 }
 
 void Application::UpdateAtomicIndices()
@@ -337,12 +338,12 @@ void Application::ApplyFilters()
   sfilt.inverted = inverse;
   if ((rawmodule.Defined("filterby")) && (rawmodule["filterby"] != "none")) 
   { 
-   GlobalSession.DebugStream() << "-> Applying implicit filter on " << rawmodule.Name() << '\n';
-   GlobalSession.DebugStream() << "-> Filtered plugin details:\n";
-   rawmodule.Show(GlobalSession.DebugStream());
+   runtime_context.session().DebugStream() << "-> Applying implicit filter on " << rawmodule.Name() << '\n';
+   runtime_context.session().DebugStream() << "-> Filtered plugin details:\n";
+   rawmodule.Show(runtime_context.session().DebugStream());
    Module & filtering_plugin = pluginmanager[rawmodule["filterby"]];
-   GlobalSession.DebugStream() << "-> Filtering plugin details:\n";
-   filtering_plugin.Show(GlobalSession.DebugStream());
+   runtime_context.session().DebugStream() << "-> Filtering plugin details:\n";
+   filtering_plugin.Show(runtime_context.session().DebugStream());
    CastModule<SystemFilter>(filtering_plugin).Update(*simulation);
    Selector<BasicParticleSet> & selector = (CastModule<SystemFilter>(filtering_plugin)).CreateSelector();
    bool inverse2 = false;
@@ -366,10 +367,10 @@ void Application::ApplyFilters()
    //
    //
   }
-  else 
-  { 
-   rawmodule.Show(GlobalSession.DebugStream());
-   sfilt.Apply(*simulation); 
+  else
+  {
+   rawmodule.Show(runtime_context.session().DebugStream());
+   sfilt.Apply(*simulation);
   }
  }
 }
@@ -422,14 +423,14 @@ template <typename T> void ApplySteppers(PluginManager & pluginmanager, UtilityC
    T & mod = CastModule<T>(rawmodule);
    if (mod.IsActiveInStep(currentstep)) 
    {
-    if ((rawmodule.Defined("filterby")) && (rawmodule["filterby"] != "none")) 
-    { 
-     GlobalSession.DebugStream() << "-> Applying implicit filter on " << modules[p] << '\n';
-     GlobalSession.DebugStream() << "-> Filtered plugin details:\n";
-     rawmodule.Show(GlobalSession.DebugStream());
+    if ((rawmodule.Defined("filterby")) && (rawmodule["filterby"] != "none"))
+    {
+     simulation.Context().session().DebugStream() << "-> Applying implicit filter on " << modules[p] << '\n';
+     simulation.Context().session().DebugStream() << "-> Filtered plugin details:\n";
+     rawmodule.Show(simulation.Context().session().DebugStream());
      Module & filtering_plugin = pluginmanager[rawmodule["filterby"]];
-     GlobalSession.DebugStream() << "-> Filtering plugin details:\n";
-     filtering_plugin.Show(GlobalSession.DebugStream());
+     simulation.Context().session().DebugStream() << "-> Filtering plugin details:\n";
+     filtering_plugin.Show(simulation.Context().session().DebugStream());
      CastModule<SystemFilter>(filtering_plugin).Update(simulation);
      Selector<BasicParticleSet> & selector = (CastModule<SystemFilter>(filtering_plugin)).CreateSelector();
      bool inverse = false;
@@ -483,14 +484,14 @@ void Application::ComputeProperties()
   lpmd::InstantProperty & prop = CastModule<lpmd::InstantProperty>(rawmodule);
   if (prop.IsActiveInStep(currentstep)) 
   {
-   if ((rawmodule.Defined("filterby")) && (rawmodule["filterby"] != "none")) 
-   { 
-    GlobalSession.DebugStream() << "-> Applying implicit filter on " << properties[p] << '\n';
-    GlobalSession.DebugStream() << "-> Filtered plugin details:\n";
-    rawmodule.Show(GlobalSession.DebugStream());
+   if ((rawmodule.Defined("filterby")) && (rawmodule["filterby"] != "none"))
+   {
+    runtime_context.session().DebugStream() << "-> Applying implicit filter on " << properties[p] << '\n';
+    runtime_context.session().DebugStream() << "-> Filtered plugin details:\n";
+    rawmodule.Show(runtime_context.session().DebugStream());
     Module & filtering_plugin = pluginmanager[rawmodule["filterby"]];
-    GlobalSession.DebugStream() << "-> Filtering plugin details:\n";
-    filtering_plugin.Show(GlobalSession.DebugStream());
+    runtime_context.session().DebugStream() << "-> Filtering plugin details:\n";
+    filtering_plugin.Show(runtime_context.session().DebugStream());
     CastModule<SystemFilter>(filtering_plugin).Update(*simulation);
     Selector<BasicParticleSet> & selector = (CastModule<SystemFilter>(filtering_plugin)).CreateSelector();
     bool inverse = false;

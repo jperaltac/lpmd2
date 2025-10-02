@@ -6,7 +6,7 @@
 
 #include <lpmd/matrix.h>
 #include <lpmd/util.h>
-#include <lpmd/session.h>
+#include <runtime/runtime_context.h>
 #include <lpmd/configuration.h>
 
 #include <sstream>
@@ -66,7 +66,7 @@ void AngularMomentum::ShowHelp() const
 void AngularMomentum::Evaluate(Configuration & conf, Potential & pot)
 {
  assert(&pot != 0);
- const double kin2ev = double(GlobalSession["kin2ev"]);
+ const double kin2ev = double(conf.Context().session()["kin2ev"]);
  const double evfs2h = 0.24179895;          // eV*fs to Planck's h 
  BasicParticleSet & atoms = conf.Atoms();
  long int n = atoms.Size();

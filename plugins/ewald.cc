@@ -4,7 +4,7 @@
 
 #include "ewald.h"
 
-#include <lpmd/session.h>
+#include <runtime/runtime_context.h>
 #include <lpmd/configuration.h>
 #include <lpmd/timer.h>
 
@@ -91,8 +91,8 @@ void Ewald::RealSpace(Configuration & conf, double & e)
 {
  BasicParticleSet & atoms = conf.Atoms();
  double ep, e0;
- const double Q2a2EV = GlobalSession["q2a2ev"];
- const double Q2a2FORCE = GlobalSession["q2a2force"];
+ const double Q2a2EV = conf.Context().session()["q2a2ev"];
+ const double Q2a2FORCE = conf.Context().session()["q2a2force"];
 
  e0 = 1.1/Q2a2EV;
  ep = 0.0;
@@ -129,8 +129,8 @@ void Ewald::ReciprocalSpace(Configuration & conf, double & e)
 {
  BasicParticleSet & atoms = conf.Atoms();
  //BasicCell & cell = conf.Cell();
- const double Q2a2EV = GlobalSession["q2a2ev"];
- const double Q2a2FORCE = GlobalSession["q2a2force"];
+ const double Q2a2EV = conf.Context().session()["q2a2ev"];
+ const double Q2a2FORCE = conf.Context().session()["q2a2force"];
  double ep = 0.0;
  if (kpoints == NULL) BuildKPointMesh(conf);
 #ifdef _OPENMP
@@ -163,8 +163,8 @@ void Ewald::SurfaceDipole(Configuration & conf, Vector * forces, double & e)
 {
  BasicParticleSet & atoms = conf.Atoms();
  BasicCell & cell = conf.Cell();
- const double Q2a2EV = GlobalSession["q2a2ev"];
- const double Q2a2FORCE = GlobalSession["q2a2force"];
+ const double Q2a2EV = conf.Context().session()["q2a2ev"];
+ const double Q2a2FORCE = conf.Context().session()["q2a2force"];
  e = 0.0;
  Vector v(0.0, 0.0, 0.0), sf(0.0, 0.0, 0.0);
  for (long int i=0;i<atoms.Size();++i)
@@ -188,7 +188,7 @@ double Ewald::EnergyConstantCorrection(Configuration & conf)
 {
  BasicParticleSet & atoms = conf.Atoms();
  BasicCell & cell = conf.Cell();
- const double Q2a2EV = GlobalSession["q2a2ev"];
+ const double Q2a2EV = conf.Context().session()["q2a2ev"];
  double e = 0.0;
  for (long int i=0;i<atoms.Size();++i) e += pow(atoms[i].Charge(), 2.0);
  e *= -alpha*(1.0/sqrt(M_PI));

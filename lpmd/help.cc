@@ -6,7 +6,7 @@
 
 #include "application.h"
 #include "config.h"
-#include <lpmd/session.h>
+#include <runtime/runtime_context.h>
 
 #include <iostream>
 #include <iomanip>
@@ -25,7 +25,7 @@ void Application::ShowHelp()
 {
  std::cerr << name << " version " << VERSION;
  std::cerr << '\n';
- std::cerr << "Using liblpmd version " << lpmd::GlobalSession["libraryversion"] << std::endl << std::endl;
+ std::cerr << "Using liblpmd version " << runtime_context.session()["libraryversion"] << std::endl << std::endl;
  std::cerr << "Usage: " << cmdname << " [--verbose | -v ] [--lengths | -L <a,b,c>] [--angles | -A <alpha,beta,gamma>]";
  std::cerr << " [--vector | -V <ax,ay,az,bx,by,bz,cx,cy,cz>] [--scale | -S <value>]";
  std::cerr << " [--option | -O <option=value,option=value,...>] [--input | -i plugin:opt1,opt2,...] [--output | -o plugin:opt1,opt2,...]";

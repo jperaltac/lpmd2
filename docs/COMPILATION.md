@@ -29,3 +29,34 @@ The build should finish without errors, producing the following artifacts:
 
 These paths match the default output configuration of the CMake project and
 confirm that the compilation stage completed successfully.
+
+## Testing
+
+Unit tests are gated behind the `LPMD_ENABLE_TESTS` CMake option. To compile
+and run them alongside the core library:
+
+1. Configure the build with testing enabled (the option defaults to CTest's
+   `BUILD_TESTING` flag):
+
+   ```bash
+   cmake -S . -B build -DLPMD_ENABLE_TESTS=ON
+   ```
+
+2. Generate the test binaries. The helper target regenerates the LPUnit-based
+   sources and builds the corresponding executables:
+
+   ```bash
+   cmake --build build --target liblpmd_unit_tests
+   ```
+
+3. Execute the suite via CTest:
+
+   ```bash
+   ctest --test-dir build --output-on-failure
+   ```
+
+New checks can be registered by adding a `.unit` file to
+`liblpmd/tests/` and listing it in `liblpmd/tests/CMakeLists.txt`. The
+LPUnit generator converts each `.unit` specification into a dedicated test
+executable that is picked up automatically by the `liblpmd_unit_tests`
+aggregate target.

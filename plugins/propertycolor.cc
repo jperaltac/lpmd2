@@ -7,7 +7,7 @@
 #include <lpmd/simulation.h>
 #include <lpmd/util.h>
 #include <lpmd/error.h>
-#include <lpmd/session.h>
+#include <runtime/runtime_context.h>
 
 #include <iostream>
 #include <fstream>
@@ -97,8 +97,8 @@ void PropertyColorModifier::ShowHelp() const
 
 void PropertyColorModifier::Apply(Simulation & sim)
 {
- const double kin2ev = double(GlobalSession["kin2ev"]);
- const double kboltzmann = double(GlobalSession["kboltzmann"]);
+ const double kin2ev = double(sim.Context().session()["kin2ev"]);
+ const double kboltzmann = double(sim.Context().session()["kboltzmann"]);
  BasicParticleSet & atoms = sim.Atoms();
  DebugStream() << "-> Applying color according to " << property << '\n';
  // Manage header line(s) for external mode

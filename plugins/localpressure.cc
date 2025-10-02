@@ -8,7 +8,7 @@
 #include <lpmd/util.h>
 #include <lpmd/simulation.h>
 #include <lpmd/pairpotential.h>
-#include <lpmd/session.h>
+#include <runtime/runtime_context.h>
 #include <lpmd/basiccell.h>
 #include <lpmd/combinedpotential.h>
 #include <lpmd/error.h>
@@ -136,7 +136,7 @@ void LocalPressure::Evaluate(Configuration & sim, Potential & pot)
   int k = ind[0]+n[0]*ind[1]+n[0]*n[1]*ind[2];
   if (k>=0 && k <= n[0]*n[1]*n[2])
   {
-   const double pressfactor = double(GlobalSession["pressfactor"]);
+   const double pressfactor = double(sim.Context().session()["pressfactor"]);
    for (int p=0;p<3;++p)
     for (int q=0;q<3;++q)
     {

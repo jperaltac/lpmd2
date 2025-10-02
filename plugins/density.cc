@@ -7,7 +7,7 @@
 #include <lpmd/util.h>
 
 #include <iostream>
-#include <lpmd/session.h>
+#include <runtime/runtime_context.h>
 
 using namespace lpmd;
 
@@ -50,7 +50,7 @@ void DensityModifier::ShowHelp() const
 
 void DensityModifier::Apply(Simulation & conf)
 {
- const double df = double(GlobalSession["ua3togrcm3"]);
+ const double df = double(conf.Context().session()["ua3togrcm3"]);
  BasicParticleSet & atoms = conf.Atoms();
  BasicCell & cell = conf.Cell();
  if(density<=0 && type!="info") throw PluginError("density","Error in density value, must be positive and non-zero.");
