@@ -96,3 +96,8 @@ target_compile_features(lpmd_core PUBLIC cxx_std_17)
 if(UNIX AND NOT APPLE)
     target_link_libraries(lpmd_core PRIVATE dl)
 endif()
+
+if(LPMD_ENABLE_TESTS)
+    add_subdirectory(lpunit)
+    add_subdirectory(tests)
+endif()
