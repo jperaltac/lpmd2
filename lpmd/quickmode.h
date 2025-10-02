@@ -11,16 +11,14 @@
 
 using namespace lpmd;
 
-class QuickModeParser: public CommandArguments
-{
- public:
-   QuickModeParser(const std::string & use_hint);
-   ~QuickModeParser();
-   std::string FormattedAsControlFile() const;
+class QuickModeParser : public CommandArguments {
+public:
+  QuickModeParser(const std::string& use_hint);
+  ~QuickModeParser();
+  std::string FormattedAsControlFile() const;
 
- private:
-   class QuickModeImpl * impl;
+private:
+  class QuickModeImpl* impl;
 };
 
 #endif
-

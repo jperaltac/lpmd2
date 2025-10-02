@@ -7,40 +7,37 @@
 
 #include <lpmd/basiccell.h>
 #include <lpmd/basicparticleset.h>
-#include <lpmd/solver.h>
 #include <lpmd/combinedpotential.h>
+#include <lpmd/solver.h>
 
-namespace lpmd
-{
- class Potential;  // forward
+namespace lpmd {
+class Potential; // forward
 
-class Integrator: public Solver
-{
- public:
-   Integrator();
-   virtual ~Integrator();
+class Integrator : public Solver {
+public:
+  Integrator();
+  virtual ~Integrator();
 
-   void GoBack(Configuration & conf);
+  void GoBack(Configuration& conf);
 
-   double Timestep() const;
+  double Timestep() const;
 
-   void UseOldConfig(Configuration & conf);
+  void UseOldConfig(Configuration& conf);
 
-   Configuration & OldConfig() const;
-   
-   void Advance(Simulation & sim) { Advance(sim, sim.Potentials()); }
-    
-   virtual void Initialize(Simulation & sim, Potential & p);
-   virtual void Advance(Simulation & sim, Potential & p) = 0;
+  Configuration& OldConfig() const;
 
- protected:
-   double dt;
+  void Advance(Simulation& sim) { Advance(sim, sim.Potentials()); }
 
- private:
-   Configuration * oldconfig;
+  virtual void Initialize(Simulation& sim, Potential& p);
+  virtual void Advance(Simulation& sim, Potential& p) = 0;
+
+protected:
+  double dt;
+
+private:
+  Configuration* oldconfig;
 };
 
-} // lpmd
+} // namespace lpmd
 
 #endif
-

@@ -6,7 +6,6 @@
 
 using namespace lpmd;
 
-SystemMixer::SystemMixer() { }
+SystemMixer::SystemMixer() {}
 
-SystemMixer::~SystemMixer() { }
-
+SystemMixer::~SystemMixer() {}

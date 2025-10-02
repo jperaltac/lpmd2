@@ -5,21 +5,17 @@
 #ifndef __LPMD_CELLGENERATOR_H__
 #define __LPMD_CELLGENERATOR_H__
 
-namespace lpmd
-{
- class Configuration;  // forward
+namespace lpmd {
+class Configuration; // forward
 
- class CellGenerator
- {
-  public:
-   CellGenerator();
-   virtual ~CellGenerator();
- 
-   virtual void Generate(Configuration & conf) const;
- };
+class CellGenerator {
+public:
+  CellGenerator();
+  virtual ~CellGenerator();
 
-} // lpmd
+  virtual void Generate(Configuration& conf) const;
+};
+
+} // namespace lpmd
 
 #endif
-
-

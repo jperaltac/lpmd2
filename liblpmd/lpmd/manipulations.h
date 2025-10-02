@@ -4,39 +4,36 @@
 #ifndef __LPMD_MANIPULATIONS_H__
 #define __LPMD_MANIPULATIONS_H__
 
-#include <iostream>
-#include <string>
-#include <sstream>
 #include <cctype>
 #include <cmath>
 #include <cstdlib>
+#include <iostream>
+#include <sstream>
+#include <string>
 
 #include <lpmd/array.h>
-#include <lpmd/basicparticleset.h>
 #include <lpmd/basiccell.h>
+#include <lpmd/basicparticleset.h>
 #include <lpmd/vector.h>
 
-namespace lpmd
-{
+namespace lpmd {
 
 //
 //
-inline void UnCenter(BasicParticleSet & part, BasicCell & cell, Vector & v) 
-{
- const long n = part.Size();
- Vector displacement = cell.ScaleByCell(v);
- for (long i=0;i<n;++i)
- {
-  part[i].Position() += displacement;
- }
+inline void UnCenter(BasicParticleSet& part, BasicCell& cell, Vector& v) {
+  const long n = part.Size();
+  Vector displacement = cell.ScaleByCell(v);
+  for (long i = 0; i < n; ++i) {
+    part[i].Position() += displacement;
+  }
 }
 
-inline void CenterByCenterOfMass(BasicParticleSet & part, BasicCell & cell) 
-{
- const long n = part.Size();
- Vector centerofmass = part.CenterOfMass();
- Vector center = cell.Cartesian(Vector(0.5, 0.5, 0.5));
- for (long i=0;i<n;++i) part[i].Position() -= (centerofmass-center);
+inline void CenterByCenterOfMass(BasicParticleSet& part, BasicCell& cell) {
+  const long n = part.Size();
+  Vector centerofmass = part.CenterOfMass();
+  Vector center = cell.Cartesian(Vector(0.5, 0.5, 0.5));
+  for (long i = 0; i < n; ++i)
+    part[i].Position() -= (centerofmass - center);
 }
 /*
 inline Vector UndoPeriodicity(BasicParticleSet & part, BasicCell & cell)
@@ -56,7 +53,6 @@ inline Vector UndoPeriodicity(BasicParticleSet & part, BasicCell & cell)
 }
 */
 
-}
+} // namespace lpmd
 
 #endif
-

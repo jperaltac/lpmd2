@@ -7,22 +7,18 @@
 
 #include <lpmd/stepper.h>
 
-namespace lpmd
-{
- class Simulation; // forward
+namespace lpmd {
+class Simulation; // forward
 
- class Visualizer: public Stepper
- {
-  public:
-   //
-   Visualizer();
-   virtual ~Visualizer();
+class Visualizer : public Stepper {
+public:
+  //
+  Visualizer();
+  virtual ~Visualizer();
 
-   virtual void Apply(const Simulation & md) = 0;
- };
+  virtual void Apply(const Simulation& md) = 0;
+};
 
-} // lpmd
+} // namespace lpmd
 
 #endif
-
-

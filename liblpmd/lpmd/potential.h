@@ -5,40 +5,36 @@
 #ifndef __LPMD_POTENTIAL_H__
 #define __LPMD_POTENTIAL_H__
 
-namespace lpmd
-{
- class Configuration;   // forward
+namespace lpmd {
+class Configuration; // forward
 
-class Potential
-{
- public:
-   Potential();
-   virtual ~Potential();
+class Potential {
+public:
+  Potential();
+  virtual ~Potential();
 
-   void SetValidSpecies(int s1, int s2);
+  void SetValidSpecies(int s1, int s2);
 
-   bool AppliesTo(int s1, int s2) const;
+  bool AppliesTo(int s1, int s2) const;
 
-   void SetCutoff(double rc) { rcutoff = rc; }
+  void SetCutoff(double rc) { rcutoff = rc; }
 
-   double GetCutoff() const { return rcutoff; }
+  double GetCutoff() const { return rcutoff; }
 
-   virtual void Initialize(Configuration & conf);
+  virtual void Initialize(Configuration& conf);
 
-   virtual double energy(Configuration & conf) = 0;
-   virtual void UpdateForces(Configuration & conf) = 0;
-   virtual double AtomEnergy(Configuration & conf, long i) = 0;
+  virtual double energy(Configuration& conf) = 0;
+  virtual void UpdateForces(Configuration& conf) = 0;
+  virtual double AtomEnergy(Configuration& conf, long i) = 0;
 
- private:
-   int spc_sum;
-   double rcutoff;
+private:
+  int spc_sum;
+  double rcutoff;
 
- protected:
-   double energycache;
+protected:
+  double energycache;
 };
 
-} // lpmd
+} // namespace lpmd
 
 #endif
-
-

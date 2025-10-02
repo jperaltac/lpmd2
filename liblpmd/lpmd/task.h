@@ -7,24 +7,20 @@
 #ifndef __LPMD_TASK_H__
 #define __LPMD_TASK_H__
 
-namespace lpmd
-{
+namespace lpmd {
 
-template <typename T, typename R> class Task
-{
- public:
-
-  virtual ~Task() { };
+template <typename T, typename R> class Task {
+public:
+  virtual ~Task(){};
 
   virtual T InnerFunction() { return pfunc; }
   virtual R Result() { return res; }
 
- protected:
+protected:
   T pfunc;
   R res;
 };
 
-} // lpmd
+} // namespace lpmd
 
 #endif
-

@@ -7,34 +7,30 @@
 
 #include <lpmd/map.h>
 
-namespace lpmd
-{
+namespace lpmd {
 
-class ParamList: public Map
-{
- public:
-   //
-   ParamList();
-   ParamList(const ParamList & pl);
-   virtual ~ParamList();
+class ParamList : public Map {
+public:
+  //
+  ParamList();
+  ParamList(const ParamList& pl);
+  virtual ~ParamList();
 
-   bool Defined(const std::string & key) const;
+  bool Defined(const std::string& key) const;
 
-   ParamList & operator=(const ParamList & pl);
-   Parameter & operator[](const std::string & key);
+  ParamList& operator=(const ParamList& pl);
+  Parameter& operator[](const std::string& key);
 
-   const Parameter & operator[](const std::string & key) const;   
- 
-   void Remove(const std::string & key);
+  const Parameter& operator[](const std::string& key) const;
 
-   Array<Parameter> Parameters() const;
+  void Remove(const std::string& key);
 
- private:
-   class ParamListImpl * paramlist_impl;
+  Array<Parameter> Parameters() const;
+
+private:
+  class ParamListImpl* paramlist_impl;
 };
 
-} // lpmd
+} // namespace lpmd
 
 #endif
-
-

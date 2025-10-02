@@ -10,52 +10,48 @@
 
 #include <lpmd/array.h>
 
-namespace lpmd
-{
+namespace lpmd {
 
-class Matrix
-{
- public:
+class Matrix {
+public:
+  Matrix(long cols, long rows);
+  Matrix(const Matrix& m);
+  Matrix();
+  virtual ~Matrix();
 
-   Matrix(long cols, long rows);
-   Matrix(const Matrix & m);
-   Matrix();
-   virtual ~Matrix();
+  //
+  long Rows() const;
+  long Columns() const;
 
-   // 
-   long Rows() const;
-   long Columns() const;
+  //
+  double Get(long col, long row) const;
+  void Set(long col, long row, double v);
 
-   //
-   double Get(long col, long row) const;
-   void Set(long col, long row, double v);
+  void SetLabel(long col, std::string lbl);
+  std::string GetLabel(long col) const;
 
-   void SetLabel(long col, std::string lbl);
-   std::string GetLabel(long col) const;
+  // Matrix operations
+  double Det() const;
+  void Inverse();
 
-   //Matrix operations
-   double Det() const;
-   void Inverse();
+  // Operador de asignacion
+  Matrix& operator=(const Matrix& m);
+  Matrix& operator+=(const Matrix& m);
 
-   // Operador de asignacion
-   Matrix & operator=(const Matrix & m);
-   Matrix & operator+=(const Matrix & m);
-
- private:
-   long nr, nc;
-   std::vector<double> values;
+private:
+  long nr, nc;
+  std::vector<double> values;
   Array<std::string> col_labels;
 };
 
-// Sobrecarga operadores aritmeticos 
-Matrix operator+(const Matrix & a, const Matrix & b);
-Matrix operator*(const Matrix & a, double f);
-Matrix operator/(const Matrix & a, double f);
+// Sobrecarga operadores aritmeticos
+Matrix operator+(const Matrix& a, const Matrix& b);
+Matrix operator*(const Matrix& a, double f);
+Matrix operator/(const Matrix& a, double f);
 
 // Operador de salida
-std::ostream & operator<<(std::ostream & os, const Matrix & m);
+std::ostream& operator<<(std::ostream& os, const Matrix& m);
 
-} // lpmd
+} // namespace lpmd
 
 #endif
-

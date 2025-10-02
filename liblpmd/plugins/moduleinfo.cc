@@ -8,10 +8,8 @@
 
 using namespace lpmd;
 
-ModuleInfo::ModuleInfo(std::string modulename, std::string moduleid, std::string moduleargs)
-{
- name = modulename;
- id = moduleid;
- args = moduleargs;
+ModuleInfo::ModuleInfo(std::string modulename, std::string moduleid, std::string moduleargs) {
+  name = modulename;
+  id = moduleid;
+  args = moduleargs;
 }
-

@@ -7,19 +7,15 @@
 
 #include <lpmd/integrator.h>
 
-namespace lpmd
-{
+namespace lpmd {
 
-class OneStepIntegrator: public Integrator
-{
- public:
-   void Advance(Simulation & sim, Potential & p);
+class OneStepIntegrator : public Integrator {
+public:
+  void Advance(Simulation& sim, Potential& p);
 
-   virtual void Advance(Simulation & sim, long i) = 0;
+  virtual void Advance(Simulation& sim, long i) = 0;
 };
 
-} // lpmd
+} // namespace lpmd
 
 #endif
-
-

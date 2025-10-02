@@ -10,10 +10,8 @@
 #include <lpmd/nonorthogonalcell.h>
 #include <lpmd/orthogonalcell.h>
 
-namespace lpmd
-{
- typedef NonOrthogonalCell Cell;
+namespace lpmd {
+typedef NonOrthogonalCell Cell;
 }
 
 #endif
-

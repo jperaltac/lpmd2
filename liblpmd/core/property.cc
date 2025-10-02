@@ -8,13 +8,12 @@
 
 using namespace lpmd;
 
-InstantProperty::~InstantProperty() { }
+InstantProperty::~InstantProperty() {}
 
-std::string & InstantProperty::OutputFile() { return ofile; }
+std::string& InstantProperty::OutputFile() { return ofile; }
 
 //
 //
 //
 
-TemporalProperty::~TemporalProperty() { }
-
+TemporalProperty::~TemporalProperty() {}

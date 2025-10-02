@@ -13,24 +13,23 @@
 
 /**
  *  \mainpage LPMD: Las Palmeras Molecular Dynamics
- *  \section intro_sec Introducción
- *
- */
-
-// General program utilities
-
+#include <lpmd/error.h>
+#include <lpmd/physunits.h>
 #include <lpmd/timer.h>
 #include <lpmd/util.h>
-#include <lpmd/physunits.h>
-#include <lpmd/cmdline.h>
-#include <lpmd/color.h>
-#include <lpmd/inputfile.h>
-#include <lpmd/paramlist.h>
-#include <lpmd/error.h>
+// Plugin loading
 
-// Plugin loading 
+// Math
+#include <lpmd/vector.h>
+// Simulation data
+#include <lpmd/atompair.h>
+#include <lpmd/pairpotential.h>
+#include <lpmd/potential.h>
+#include <lpmd/potentialarray.h>
+// Molecular dynamics
 
-#include <lpmd/module.h>
+#include <lpmd/temporalproperty.h>
+
 #include <lpmd/plugin.h>
 #include <lpmd/pluginmanager.h>
 

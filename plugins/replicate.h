@@ -5,24 +5,21 @@
 #ifndef __REPLICATE_H__
 #define __REPLICATE_H__
 
-#include <lpmd/systemmodifier.h>
 #include <lpmd/plugin.h>
+#include <lpmd/systemmodifier.h>
 
-class ReplicateModifier: public lpmd::SystemModifier, public lpmd::Plugin
-{
- public:
-
-  //Metodos Generales 
+class ReplicateModifier : public lpmd::SystemModifier, public lpmd::Plugin {
+public:
+  // Metodos Generales
   ReplicateModifier(std::string args);
   ~ReplicateModifier();
   void ShowHelp() const;
 
-  //Metodos Propios de modulo cellscaling
-  void Apply(lpmd::Simulation & con);
+  // Metodos Propios de modulo cellscaling
+  void Apply(lpmd::Simulation& con);
 
- private:
+private:
   int nx, ny, nz;
 };
 
 #endif
-

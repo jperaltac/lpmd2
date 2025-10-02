@@ -10,29 +10,28 @@
 
 #include <iostream>
 
-namespace lpmd
-{
- class SimulationHistory; // forward
- class Configuration;     // forward
+namespace lpmd {
+class SimulationHistory; // forward
+class Configuration;     // forward
 
- class CellReader: public CellGenerator
- {
-  public:
-      void Generate(Configuration & conf) const;
- 
-      virtual void ReadHeader(std::istream & is) const = 0;
-      virtual bool ReadCell(std::istream & is, Configuration & conf) const = 0;
-      virtual bool SkipCell(std::istream & is) const;
- 
-      void Read(const std::string & filename, Configuration & conf) const;
-      void ReadMany(const std::string & filename, SimulationHistory & hist, const Stepper & stepper, bool skipheader=false) const;
-      void ReadMany(std::istream & inputstream, SimulationHistory & hist, const Stepper & stepper, bool skipheader=false) const;
+class CellReader : public CellGenerator {
+public:
+  void Generate(Configuration& conf) const;
 
-  protected:
-      std::string readfile;
- };
+  virtual void ReadHeader(std::istream& is) const = 0;
+  virtual bool ReadCell(std::istream& is, Configuration& conf) const = 0;
+  virtual bool SkipCell(std::istream& is) const;
 
-} // lpmd 
+  void Read(const std::string& filename, Configuration& conf) const;
+  void ReadMany(const std::string& filename, SimulationHistory& hist, const Stepper& stepper,
+                bool skipheader = false) const;
+  void ReadMany(std::istream& inputstream, SimulationHistory& hist, const Stepper& stepper,
+                bool skipheader = false) const;
+
+protected:
+  std::string readfile;
+};
+
+} // namespace lpmd
 
 #endif
-

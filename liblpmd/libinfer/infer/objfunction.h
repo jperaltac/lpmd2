@@ -13,20 +13,18 @@
 //
 //
 //
-class ObjectiveFunction: public RealFunction<State>
-{
- public:
-   ObjectiveFunction(unsigned long int N): N(N) { }
+class ObjectiveFunction : public RealFunction<State> {
+public:
+  ObjectiveFunction(unsigned long int N) : N(N) {}
 
-   inline unsigned long int Size() const { return N; }
+  inline unsigned long int Size() const { return N; }
 
-   virtual ~ObjectiveFunction() { }
+  virtual ~ObjectiveFunction() {}
 
-   virtual double operator()(const State & p) const = 0;
+  virtual double operator()(const State& p) const = 0;
 
-  private:
-    unsigned long int N;
+private:
+  unsigned long int N;
 };
 
 #endif
-

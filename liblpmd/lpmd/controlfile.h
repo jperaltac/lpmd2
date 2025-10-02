@@ -7,34 +7,33 @@
 
 #include <lpmd/paramlist.h>
 
-namespace lpmd
-{
+namespace lpmd {
 
-class ControlFile: public ParamList
-{
- public:
-   ControlFile();
-   virtual ~ControlFile();
+class ControlFile : public ParamList {
+public:
+  ControlFile();
+  virtual ~ControlFile();
 
-   void DeclareStatement(const std::string & name, const std::string & args);
-   void DeclareBlock(const std::string & name, const std::string & terminator);
- 
-   void Read(const std::string & filename, const ParamList & options);
+  void DeclareStatement(const std::string& name, const std::string& args);
+  void DeclareBlock(const std::string& name, const std::string& terminator);
 
-   virtual void Read(std::istream & istr, const ParamList & options, const std::string & filename="Unnamed");
+  void Read(const std::string& filename, const ParamList& options);
 
- protected:
-   std::string ParseCommandArguments(Map & param, const std::string & cmd, const std::string & validkeywords);
-   void ReadLine(const std::string & line);
-   virtual int OnRegularStatement(const std::string & name, const std::string & keywords);
-   virtual int OnNonRegularStatement(const std::string & name, const std::string & full_statement);
-   virtual int OnBlock(const std::string & name, const std::string & full_statement);
+  virtual void Read(std::istream& istr, const ParamList& options,
+                    const std::string& filename = "Unnamed");
 
- private:
-   class ControlFileImpl * impl;
+protected:
+  std::string ParseCommandArguments(Map& param, const std::string& cmd,
+                                    const std::string& validkeywords);
+  void ReadLine(const std::string& line);
+  virtual int OnRegularStatement(const std::string& name, const std::string& keywords);
+  virtual int OnNonRegularStatement(const std::string& name, const std::string& full_statement);
+  virtual int OnBlock(const std::string& name, const std::string& full_statement);
+
+private:
+  class ControlFileImpl* impl;
 };
 
-} // lpmd
+} // namespace lpmd
 
 #endif
-

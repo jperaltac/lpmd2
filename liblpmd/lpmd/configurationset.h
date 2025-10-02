@@ -9,23 +9,20 @@
 
 #include <lpmd/configuration.h>
 
-namespace lpmd
-{
+namespace lpmd {
 
- class ConfigurationSet
- {
-  public:
-    virtual ~ConfigurationSet() { }
-    virtual Configuration & operator[](long int i) = 0;
+class ConfigurationSet {
+public:
+  virtual ~ConfigurationSet() {}
+  virtual Configuration& operator[](long int i) = 0;
 
-    virtual const Configuration & operator[](long int i) const = 0;
+  virtual const Configuration& operator[](long int i) const = 0;
 
-    virtual long int Size() const = 0;
-  
-    virtual long int Size() = 0;
- };
+  virtual long int Size() const = 0;
 
-}  // lpmd
+  virtual long int Size() = 0;
+};
+
+} // namespace lpmd
 
 #endif
-

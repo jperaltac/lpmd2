@@ -7,7 +7,6 @@
 
 using namespace lpmd;
 
-CellFormat::CellFormat() { }
+CellFormat::CellFormat() {}
 
-CellFormat::~CellFormat() { }
-
+CellFormat::~CellFormat() {}

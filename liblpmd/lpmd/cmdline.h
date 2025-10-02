@@ -5,28 +5,26 @@
 #ifndef __LPMD_CMDLINE_H__
 #define __LPMD_CMDLINE_H__
 
-#include <lpmd/paramlist.h>
 #include <cstring>
+#include <lpmd/paramlist.h>
 
-namespace lpmd
-{
+namespace lpmd {
 
-class CommandArguments: public ParamList
-{
- public:
+class CommandArguments : public ParamList {
+public:
   CommandArguments();
   ~CommandArguments();
 
-  void DefineOption(const std::string & longname, const std::string & shortname, const std::string & args);
+  void DefineOption(const std::string& longname, const std::string& shortname,
+                    const std::string& args);
 
-  void Parse(int argc, const char ** argv);
+  void Parse(int argc, const char** argv);
   Array<std::string> Arguments() const;
- 
- private:
-   class CommandArgumentsImpl * clpimpl;
+
+private:
+  class CommandArgumentsImpl* clpimpl;
 };
 
-}  // lpmd
+} // namespace lpmd
 
 #endif
-

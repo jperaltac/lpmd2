@@ -7,26 +7,22 @@
 
 #include <cstdlib>
 
-namespace lpmd
-{
+namespace lpmd {
 
- class Timer
- {
-  public:
-    //
-    Timer();
-    ~Timer();
+class Timer {
+public:
+  //
+  Timer();
+  ~Timer();
 
-   void Start();
-   void Stop();
-   void ShowElapsedTimes() const;
+  void Start();
+  void Stop();
+  void ShowElapsedTimes() const;
 
-   private:
-     class TimerImpl * timpl;
- };
+private:
+  class TimerImpl* timpl;
+};
 
-} // lpmd
+} // namespace lpmd
 
 #endif
-
-

@@ -8,20 +8,18 @@
 #include <lpmd/plugin.h>
 #include <lpmd/simulation.h>
 
-class Test: public lpmd::Plugin
-{
- public:
-    explicit Test(std::string args);
-    ~Test() override;
+class Test : public lpmd::Plugin {
+public:
+  explicit Test(std::string args);
+  ~Test() override;
 
-    void ShowHelp() const override;
+  void ShowHelp() const override;
 
-    void PerformTest(lpmd::Simulation & sim);
+  void PerformTest(lpmd::Simulation& sim);
 
- private:
-    int iterations_;
-    long atoms_per_iteration_;
+private:
+  int iterations_;
+  long atoms_per_iteration_;
 };
 
 #endif
-

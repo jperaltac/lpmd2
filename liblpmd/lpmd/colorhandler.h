@@ -7,24 +7,21 @@
 
 #include <lpmd/color.h>
 
-namespace lpmd
-{
- class BasicAtom; // forward
+namespace lpmd {
+class BasicAtom; // forward
 
- class ColorHandler
- {
-  public:
-    static bool HaveColor(const BasicAtom & at); 
-    static Color & ColorOfAtom(const BasicAtom & at);
-    static Color DefaultColor(const BasicAtom & at);
+class ColorHandler {
+public:
+  static bool HaveColor(const BasicAtom& at);
+  static Color& ColorOfAtom(const BasicAtom& at);
+  static Color DefaultColor(const BasicAtom& at);
 
-  private:
-    ColorHandler();  // private constructor
-   
-    static class ColorHandlerImpl impl;
- };
+private:
+  ColorHandler(); // private constructor
 
+  static class ColorHandlerImpl impl;
+};
 
-} // lpmd
+} // namespace lpmd
 
 #endif

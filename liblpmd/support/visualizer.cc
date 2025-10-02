@@ -6,7 +6,6 @@
 
 using namespace lpmd;
 
-Visualizer::Visualizer() { }
+Visualizer::Visualizer() {}
 
-Visualizer::~Visualizer() { }
-
+Visualizer::~Visualizer() {}
