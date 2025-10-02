@@ -8,32 +8,28 @@
 #define __LPMD_ATOMSELECTOR_H__
 
 #include <lpmd/basicparticleset.h>
+#include <lpmd/region.h>
 #include <lpmd/selector.h>
 #include <lpmd/taghandler.h>
-#include <lpmd/region.h>
 
-namespace lpmd
-{
-  
- class AtomSelector
- {
-  public:
-    AtomSelector();
+namespace lpmd {
 
-    ~AtomSelector();
+class AtomSelector {
+public:
+  AtomSelector();
 
-    static Selector<BasicParticleSet> & WithZ(int z);
+  ~AtomSelector();
 
-    static Selector<BasicParticleSet> & WithTag(Tag t);
+  static Selector<BasicParticleSet>& WithZ(int z);
 
-    static Selector<BasicParticleSet> & Inside(const Region & r);
+  static Selector<BasicParticleSet>& WithTag(Tag t);
 
-  private:
-    static class AtomSelectorImpl impl;
- };
+  static Selector<BasicParticleSet>& Inside(const Region& r);
 
+private:
+  static class AtomSelectorImpl impl;
+};
 
-}  // lpmd
+} // namespace lpmd
 
 #endif
-

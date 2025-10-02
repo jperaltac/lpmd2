@@ -9,18 +9,14 @@
 
 #include <lpmd/systemmodifier.h>
 
-namespace lpmd
-{
- class Solver: public SystemModifier
- {
-  public:
+namespace lpmd {
+class Solver : public SystemModifier {
+public:
+  inline void Apply(Simulation& sim) { Advance(sim); }
 
-   inline void Apply(Simulation & sim) { Advance(sim); }
+  virtual void Advance(Simulation& sim) = 0;
+};
 
-   virtual void Advance(Simulation & sim) = 0;
- };
-
-}  // lpmd
+} // namespace lpmd
 
 #endif
-

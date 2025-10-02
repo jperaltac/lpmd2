@@ -5,4 +5,3 @@
  */
 
 #include "infer/metropolis.h"
-

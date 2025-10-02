@@ -12,21 +12,19 @@
 
 #include <iostream>
 
-class Analyzer: public Application
-{
- public:
-   Analyzer(int argc, const char * argv[]);
-   ~Analyzer();
+class Analyzer : public Application {
+public:
+  Analyzer(int argc, const char* argv[]);
+  ~Analyzer();
 
-   int Run();
-   void Iterate();
-   void CheckForTemporalProperties();
-   void ComputeTemporalProperties();
+  int Run();
+  void Iterate();
+  void CheckForTemporalProperties();
+  void ComputeTemporalProperties();
 
- private:
-   UtilityControl control; 
-   Array<TemporalProperty *> temporalproperties;
+private:
+  UtilityControl control;
+  Array<TemporalProperty*> temporalproperties;
 };
 
 #endif
-

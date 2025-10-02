@@ -9,27 +9,24 @@
 
 #include <lpunit/test.h>
 
-namespace lpunit
-{
+namespace lpunit {
 
-class TestSuite
-{
- public:
-   //
-   TestSuite(std::string desc);
-   virtual ~TestSuite();
+class TestSuite {
+public:
+  //
+  TestSuite(std::string desc);
+  virtual ~TestSuite();
 
-   //
-   void SetTestsSetup(void (*setupfunc)());
-   void SetTestsTeardown(void (*tdfunc)());
-   void Register(Test * newtest);
-   int PerformAllTests();
+  //
+  void SetTestsSetup(void (*setupfunc)());
+  void SetTestsTeardown(void (*tdfunc)());
+  void Register(Test* newtest);
+  int PerformAllTests();
 
- private:
-   class TestSuiteImpl * impl;
+private:
+  class TestSuiteImpl* impl;
 };
 
-}
+} // namespace lpunit
 
 #endif
-

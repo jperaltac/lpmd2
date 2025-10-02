@@ -11,75 +11,76 @@
 #include <string>
 #include <vector>
 
-#include <lpmd/plugin.h>
-#include <lpmd/paramlist.h>
 #include <lpmd/error.h>
 #include <lpmd/moduleinfo.h>
+#include <lpmd/paramlist.h>
+#include <lpmd/plugin.h>
 
-namespace lpmd
-{
+namespace lpmd {
 
 struct PluginDeleter;
 
 // Safe casting of Modules into specific kinds of plugins
-template<class T> T & CastModule(Module & m)
-{
- try { return dynamic_cast<T &>(m); }
- catch (std::exception & ex) { throw InvalidOperation("The requested casting of plugins"); }
+template <class T> T& CastModule(Module& m) {
+  try {
+    return dynamic_cast<T&>(m);
+  } catch (std::exception& ex) {
+    throw InvalidOperation("The requested casting of plugins");
+  }
 }
 
-class PluginManager
-{
- public:
-   //
-   PluginManager();
-   ~PluginManager();
+class PluginManager {
+public:
+  //
+  PluginManager();
+  ~PluginManager();
 
-   Array<std::string> Plugins() const;
+  Array<std::string> Plugins() const;
 
-   void AddToPluginPath(const std::filesystem::path & pdir);
+  void AddToPluginPath(const std::filesystem::path& pdir);
 
-   void LoadPluginFile(std::string path, std::string id, std::string args);
-   void LoadPlugin(std::string name, std::string id, std::string args);
-   void LoadPlugin(std::string name, std::string args);
-   void LoadPlugin(ModuleInfo info);
-   void UnloadPlugin(std::string id);
- 
-   bool IsLoaded(std::string id); 
-   void UpdatePlugin(std::string id, std::string new_args);
+  void LoadPluginFile(std::string path, std::string id, std::string args);
+  void LoadPlugin(std::string name, std::string id, std::string args);
+  void LoadPlugin(std::string name, std::string args);
+  void LoadPlugin(ModuleInfo info);
+  void UnloadPlugin(std::string id);
 
-   template<typename T> bool HasType(const std::string & id)
-   {
-    try { T & t = CastModule<T>((*this)[id]); return (&t != 0); }
-    catch (InvalidOperation & e) { return false; }
-   }
+  bool IsLoaded(std::string id);
+  void UpdatePlugin(std::string id, std::string new_args);
 
-   template<typename T> T & LoadPluginAs(std::string name, std::string args)
-   {
+  template <typename T> bool HasType(const std::string& id) {
+    try {
+      T& t = CastModule<T>((*this)[id]);
+      return (&t != 0);
+    } catch (InvalidOperation& e) {
+      return false;
+    }
+  }
+
+  template <typename T> T& LoadPluginAs(std::string name, std::string args) {
     LoadPlugin(name, args);
     return CastModule<T>((*this)[name]);
-   }
+  }
 
-   void DefineAlias(const std::string id, const std::string name);
+  void DefineAlias(const std::string id, const std::string name);
 
-   std::string GetPluginKeywords(std::string name);
-   bool IsProvided(const std::string property);
-   Plugin & Provider(const std::string property);
-   Array<std::string> NamedProperties();
+  std::string GetPluginKeywords(std::string name);
+  bool IsProvided(const std::string property);
+  Plugin& Provider(const std::string property);
+  Array<std::string> NamedProperties();
 
-   Plugin & operator[] (std::string id); 
-   const Plugin & operator[](std::string id) const;
+  Plugin& operator[](std::string id);
+  const Plugin& operator[](std::string id) const;
 
- private:
-   std::map<std::string, std::unique_ptr<Plugin, PluginDeleter>> modules;
-   std::vector<std::filesystem::path> pluginpath;
-   std::map<std::string, Plugin *> namedprops;
-   ParamList aliasdict;
+private:
+  std::map<std::string, std::unique_ptr<Plugin, PluginDeleter>> modules;
+  std::vector<std::filesystem::path> pluginpath;
+  std::map<std::string, Plugin*> namedprops;
+  ParamList aliasdict;
 };
 
-} // lpmd 
+} // namespace lpmd
 
-std::ostream & operator<<(std::ostream & os, const lpmd::PluginManager & pm);
+std::ostream& operator<<(std::ostream& os, const lpmd::PluginManager& pm);
 
 #endif
-

@@ -9,25 +9,21 @@
 
 #include <lpmd/basicatom.h>
 
-namespace lpmd
-{
+namespace lpmd {
 
-class IndirectAtom: public BasicAtom
-{
- public:
-   IndirectAtom(): BasicAtom(0, 0, 0, 0) {  }
-   IndirectAtom(int z): BasicAtom(z, 0, 0, 0) {  }
-   ~IndirectAtom() {  }
-  
-   inline void SetAddresses(Vector * pos, Vector * vel, Vector * acc) 
-   { 
+class IndirectAtom : public BasicAtom {
+public:
+  IndirectAtom() : BasicAtom(0, 0, 0, 0) {}
+  IndirectAtom(int z) : BasicAtom(z, 0, 0, 0) {}
+  ~IndirectAtom() {}
+
+  inline void SetAddresses(Vector* pos, Vector* vel, Vector* acc) {
     ipos = pos;
     ivel = vel;
     iacc = acc;
-   }
+  }
 };
 
-}
+} // namespace lpmd
 
 #endif
-

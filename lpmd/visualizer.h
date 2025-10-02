@@ -10,27 +10,24 @@
 #include "application.h"
 #include <iostream>
 
-class VisualizerControl: public UtilityControl
-{
- public:
-   VisualizerControl(PluginManager & pm): UtilityControl(pm) { }
+class VisualizerControl : public UtilityControl {
+public:
+  VisualizerControl(PluginManager& pm) : UtilityControl(pm) {}
 };
 
-class Visualizer: public Application
-{
- public:
-   Visualizer(int argc, const char * argv[]);
-   ~Visualizer();
+class Visualizer : public Application {
+public:
+  Visualizer(int argc, const char* argv[]);
+  ~Visualizer();
 
-   int Run();
-   void FillAtoms();
-   void Iterate();
-   void IterateSequential();
-   void IterateReplay();
+  int Run();
+  void FillAtoms();
+  void Iterate();
+  void IterateSequential();
+  void IterateReplay();
 
- private:
-   VisualizerControl control; 
+private:
+  VisualizerControl control;
 };
 
 #endif
-

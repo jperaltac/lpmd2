@@ -7,44 +7,42 @@
 
 #include <lpmd/module.h>
 
-namespace lpmd
-{
+namespace lpmd {
 
-class Plugin: public Module
-{
- public:
-   Plugin(const std::string & pluginname, const std::string & pluginversion);
-   Plugin(const std::string & pluginname, const std::string & pluginversion, const std::string & bugreport);
-   Plugin(const Plugin & mod);
-   virtual ~Plugin();
+class Plugin : public Module {
+public:
+  Plugin(const std::string& pluginname, const std::string& pluginversion);
+  Plugin(const std::string& pluginname, const std::string& pluginversion,
+         const std::string& bugreport);
+  Plugin(const Plugin& mod);
+  virtual ~Plugin();
 
-   bool Used() const;
-   void SetUsed();
+  bool Used() const;
+  void SetUsed();
 
-   void SetLibraryHandle(void * handle);
-   void * LibraryHandle() const;
+  void SetLibraryHandle(void* handle);
+  void* LibraryHandle() const;
 
-   virtual bool AutoTest();
-   virtual void CheckConsistency();
+  virtual bool AutoTest();
+  virtual void CheckConsistency();
 
-   void (*unloader)(Plugin *);
+  void (*unloader)(Plugin*);
 
- private: 
-   bool used;
-   void * library_handle;
+private:
+  bool used;
+  void* library_handle;
 };
 
-Plugin * PluginLoader(std::string path, std::string args);
+Plugin* PluginLoader(std::string path, std::string args);
 
-}  // lpmd
+} // namespace lpmd
 
-template<class TYPE> TYPE function_cast(void * symbol);
+template <class TYPE> TYPE function_cast(void* symbol);
 
-typedef lpmd::Plugin * create_t(std::string args);
-typedef void destroy_t(lpmd::Plugin *);
+typedef lpmd::Plugin* create_t(std::string args);
+typedef void destroy_t(lpmd::Plugin*);
 
-extern "C" lpmd::Plugin * create(std::string args);
-extern "C" void destroy(lpmd::Plugin * m);
+extern "C" lpmd::Plugin* create(std::string args);
+extern "C" void destroy(lpmd::Plugin* m);
 
 #endif
-

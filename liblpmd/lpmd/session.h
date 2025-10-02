@@ -8,21 +8,18 @@
 #include <lpmd/module.h>
 #include <runtime/units.h>
 
-namespace lpmd
-{
+namespace lpmd {
 
- class Session: public Module
- {
-  public:
-    //
-    explicit Session(const UnitSystem & units = DefaultUnitSystem());
-    ~Session();
+class Session : public Module {
+public:
+  //
+  explicit Session(const UnitSystem& units = DefaultUnitSystem());
+  ~Session();
 
-   private:
-     class SessionImpl * simpl;
- };
+private:
+  class SessionImpl* simpl;
+};
 
-} // lpmd
+} // namespace lpmd
 
 #endif
-

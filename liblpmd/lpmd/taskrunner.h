@@ -9,22 +9,17 @@
 
 #include <lpmd/task.h>
 
-namespace lpmd
-{
+namespace lpmd {
 
-// TaskRunner es una interfaz que todo 
+// TaskRunner es una interfaz que todo
 // objeto que ejecute una Task debe implementar
-template <typename T, typename R> class TaskRunner
-{
- public:
+template <typename T, typename R> class TaskRunner {
+public:
+  virtual ~TaskRunner() {}
 
-   virtual ~TaskRunner() { }
-
-   virtual void RunTask(Task<T, R> & t) = 0;
-
+  virtual void RunTask(Task<T, R>& t) = 0;
 };
 
-} // lpmd
+} // namespace lpmd
 
 #endif
-

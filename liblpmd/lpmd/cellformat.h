@@ -8,16 +8,14 @@
 #include <lpmd/cellreader.h>
 #include <lpmd/cellwriter.h>
 
-namespace lpmd
-{
+namespace lpmd {
 
-class CellFormat:public CellReader,public CellWriter
-{
- public:
+class CellFormat : public CellReader, public CellWriter {
+public:
   CellFormat();
   virtual ~CellFormat();
 };
 
-} // lpmd
+} // namespace lpmd
 
 #endif

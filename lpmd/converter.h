@@ -10,18 +10,16 @@
 #include "application.h"
 #include <iostream>
 
-class Converter: public Application
-{
- public:
-   Converter(int argc, const char * argv[]);
-   ~Converter();
+class Converter : public Application {
+public:
+  Converter(int argc, const char* argv[]);
+  ~Converter();
 
-   void FillAtoms();
-   void Iterate();
+  void FillAtoms();
+  void Iterate();
 
- private:
-   UtilityControl control; 
+private:
+  UtilityControl control;
 };
 
 #endif
-

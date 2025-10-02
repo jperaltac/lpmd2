@@ -8,23 +8,19 @@
 #include <lpmd/pairpotential.h>
 #include <lpmd/plugin.h>
 
-class Buckingham: public lpmd::PairPotential , public lpmd::Plugin
-{
- public:
-
-  //Metodos Generales  
-  Buckingham(std::string args); 
-  ~Buckingham() { };
+class Buckingham : public lpmd::PairPotential, public lpmd::Plugin {
+public:
+  // Metodos Generales
+  Buckingham(std::string args);
+  ~Buckingham(){};
   void ShowHelp() const;
 
-  //Metodos Propios de Modulo Buckingham
-  double pairEnergy(const double & r) const;
-  lpmd::Vector pairForce(const lpmd::Vector & r) const;
+  // Metodos Propios de Modulo Buckingham
+  double pairEnergy(const double& r) const;
+  lpmd::Vector pairForce(const lpmd::Vector& r) const;
 
- private:
+private:
   double B1, Ro, B2, cutoff;
 };
 
-
 #endif
-

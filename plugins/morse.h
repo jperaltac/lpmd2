@@ -8,23 +8,19 @@
 #include <lpmd/pairpotential.h>
 #include <lpmd/plugin.h>
 
-class Morse: public lpmd::PairPotential, public lpmd::Plugin
-{
- public:
-  //Metodos Generales
-  Morse(std::string args); 
-  ~Morse() { };
+class Morse : public lpmd::PairPotential, public lpmd::Plugin {
+public:
+  // Metodos Generales
+  Morse(std::string args);
+  ~Morse(){};
   void ShowHelp() const;
 
-  //Metodos propios modulo morse
-  double pairEnergy(const double & r) const;
-  lpmd::Vector pairForce(const lpmd::Vector & r) const;
+  // Metodos propios modulo morse
+  double pairEnergy(const double& r) const;
+  lpmd::Vector pairForce(const lpmd::Vector& r) const;
 
- private:
+private:
   double depth, a, re;
-
 };
 
-
 #endif
-

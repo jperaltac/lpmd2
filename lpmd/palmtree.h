@@ -10,4 +10,3 @@
 void PrintPalmTree();
 
 #endif
-

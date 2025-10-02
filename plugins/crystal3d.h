@@ -10,21 +10,20 @@
 
 using namespace lpmd;
 
-class CrystalGenerator: public lpmd::CellGenerator, public lpmd::Plugin
-{
- public:
-   //Metodos Generales
-   CrystalGenerator(std::string args);
-   virtual ~CrystalGenerator();
-   void ShowHelp() const;
+class CrystalGenerator : public lpmd::CellGenerator, public lpmd::Plugin {
+public:
+  // Metodos Generales
+  CrystalGenerator(std::string args);
+  virtual ~CrystalGenerator();
+  void ShowHelp() const;
 
-   //Metodos Propios del modulo fccgenerator
-   void Generate(Configuration & config) const;
+  // Metodos Propios del modulo fccgenerator
+  void Generate(Configuration& config) const;
 
- private:
-   int spc;
-   long nx, ny, nz;
-   std::string type; // type=bcc,fcc,hcp,sc
+private:
+  int spc;
+  long nx, ny, nz;
+  std::string type; // type=bcc,fcc,hcp,sc
 };
 
 #endif

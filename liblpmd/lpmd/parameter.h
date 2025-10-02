@@ -9,28 +9,25 @@
 
 #include <string>
 
-namespace lpmd
-{
+namespace lpmd {
 
- class Parameter: public std::string
- {
-  public:
-   Parameter(): std::string() { }
-   Parameter(const std::string & p): std::string(p) { }
+class Parameter : public std::string {
+public:
+  Parameter() : std::string() {}
+  Parameter(const std::string& p) : std::string(p) {}
 
-   Parameter & operator=(const std::string & p)
-   {
-    if (&p != this) { std::string::operator=(p); }
+  Parameter& operator=(const std::string& p) {
+    if (&p != this) {
+      std::string::operator=(p);
+    }
     return (*this);
-   }
+  }
 
-   inline operator double() { return double(atof((*this).c_str())); }
-   inline operator bool() { return bool((*this) == "true"); }
-   inline operator int() { return atoi((*this).c_str()); }
- };
+  inline operator double() { return double(atof((*this).c_str())); }
+  inline operator bool() { return bool((*this) == "true"); }
+  inline operator int() { return atoi((*this).c_str()); }
+};
 
-}  // lpmd
-
+} // namespace lpmd
 
 #endif
-
