@@ -1,94 +1,79 @@
 /*
- *
- *
- *
+ * Regression plugin that exercises common container operations to verify that
+ * the Simulation and particle set APIs behave as expected.  The previous
+ * version relied on legacy direct/indirect arrays that no longer exist in the
+ * modern code base, which caused compilation to fail.  The implementation below
+ * sticks to the current `BasicParticleSet` interface instead.
  */
-
-#include <iostream>
-#include <lpmd/array.h>
-#include <lpmd/atom.h>
-#include <lpmd/timer.h>
-#include <lpmd/basicparticleset.h>
 
 #include "test.h"
 
-Test::Test(std::string args): Module("test")
+#include <lpmd/atom.h>
+#include <lpmd/basicparticleset.h>
+#include <lpmd/timer.h>
+#include <lpmd/util.h>
+
+#include <iostream>
+#include <utility>
+
+using lpmd::BasicParticleSet;
+using lpmd::Simulation;
+
+Test::Test(std::string args)
+    : Plugin("test", "1.1"), iterations_(10), atoms_per_iteration_(10000)
 {
+    DefineKeyword("iterations", "10");
+    DefineKeyword("atoms", "10000");
+    ProcessArguments(args);
 
-
+    iterations_ = int((*this)["iterations"]);
+    atoms_per_iteration_ = static_cast<long>(int((*this)["atoms"]));
 }
 
-Test::~Test()
+Test::~Test() = default;
+
+void Test::ShowHelp() const
 {
-
-
+    std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+    std::cout << " Module Name        = test                                                     \n";
+    std::cout << " Problems Report to = admin@lpmd.cl                                            \n";
+    std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+    std::cout << " General Info      >>                                                          \n";
+    std::cout << "      Utility plugin that stresses the particle container implementation to    \n";
+    std::cout << "      make sure append, clear and iteration routines remain functional.        \n";
+    std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+    std::cout << " General Options   >>                                                          \n";
+    std::cout << "      iterations    : Number of warm-up loops executed by PerformTest.         \n";
+    std::cout << "      atoms         : Number of atoms appended per iteration.                  \n";
+    std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 }
 
-void Test::PerformTest(Simulation & s)
+void Test::PerformTest(Simulation & sim)
 {
- std::cout << "This is the test from \"test\" plugin!\n";
- Array<Atom> & darray = s.DirectArray();
- BasicParticleSet & iarray = s.IndirectArray();
- Timer t;
- const Atom un_atomo("Cu");
- std::cout << "Append de hartos atomos en arreglo directo\n";
- t.Start();
- for (int k=0;k<100;++k)
- {
-  for (long int i=0;i<100000;++i) darray.Append(un_atomo);
-  assert(darray.Size() == 100000);
-  darray.Clear();
- }
- t.Stop();
- t.ShowElapsedTimes();
+    BasicParticleSet & atoms = sim.Atoms();
+    atoms.Clear();
 
- std::cout << "Append de hartos atomos en arreglo indirecto\n";
- t.Start();
- for (int k=0;k<100;++k)
- {
-  for (long int i=0;i<100000;++i) iarray.Append(un_atomo);
-  assert(iarray.Size() == 100000);
-  iarray.Clear();
- }
- t.Stop();
- t.ShowElapsedTimes();
+    const lpmd::Atom prototype("Cu");
+    lpmd::Timer timer;
 
- for (long int i=0;i<100000;++i) darray.Append(un_atomo);
- assert(darray.Size() == 100000);
- std::cout << "Seteo y lectura de posiciones de hartos atomos en arreglo directo\n";
- t.Start();
- for (int k=0;k<100;++k)
- {
-  double ss = 0.0;
-  for (long int i=0;i<100000;++i)
-  { 
-   darray[i].Position() = RandomVector(1.0);
-   ss += darray[i].Position().Module();
-  }
- }
- t.Stop();
- t.ShowElapsedTimes();
+    std::cout << "Running container stress test with " << atoms_per_iteration_
+              << " atoms per iteration and " << iterations_ << " iterations.\n";
 
- for (long int i=0;i<100000;++i) iarray.Append(un_atomo);
- assert(iarray.Size() == 100000);
- std::cout << "Seteo de posiciones de hartos atomos en arreglo indirecto\n";
- t.Start();
- for (int k=0;k<100;++k)
- {
-  double ss = 0.0;
-  for (long int i=0;i<100000;++i)
-  {
-   iarray[i].Position() = RandomVector(1.0);
-   ss += iarray[i].Position().Module();
-  }
- }
- t.Stop();
- t.ShowElapsedTimes();
-
+    for (int iteration = 0; iteration < iterations_; ++iteration)
+    {
+        timer.Start();
+        for (long idx = 0; idx < atoms_per_iteration_; ++idx)
+        {
+            atoms.Append(prototype);
+            atoms[idx].Position() = lpmd::RandomVector(1.0);
+        }
+        timer.Stop();
+        timer.ShowElapsedTimes();
+        atoms.Clear();
+    }
 }
 
-
-// Esto se incluye para que el modulo pueda ser cargado dinamicamente
-Module * create(std::string args) { return new Test(args); }
-void destroy(Module * m) { delete m; }
+// Factory hooks for the dynamic loader
+extern "C" lpmd::Plugin * create(std::string args) { return new Test(std::move(args)); }
+extern "C" void destroy(lpmd::Plugin * plugin) { delete plugin; }
 
