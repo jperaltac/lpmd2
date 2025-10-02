@@ -25,7 +25,8 @@ using namespace lpmd;
  cell[0] = Vector(1,0,0);
  cell[1] = Vector(0,1,0);
  cell[2] = Vector(0,0,1);
- UnCenter(part, cell);
+ Vector shift(0.5, 0.5, 0.5);
+ UnCenter(part, cell, shift);
  @approx (part[0].Position()-Vector(1,1,1)).Module(), 0.0, 1E-10
  @approx (part[1].Position()-Vector(0,0,0)).Module(), 0.0, 1E-10
  @approx (part[2].Position()-Vector(0,0,1)).Module(), 0.0, 1E-10

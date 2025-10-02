@@ -15,8 +15,9 @@ class MockCellManager: public CellManager
     last_full = false;
     last_rcut = 0.0;
    } 
-   void Reset() { }
-   void UpdateCell(Configuration & conf) { }
+  void Reset() { }
+  void UpdateCell(Configuration & conf) { }
+  void UpdateAtom(Configuration & conf, long int i) { (void)conf; (void)i; }
    void BuildNeighborList(Configuration & conf, long int i, NeighborList & nlist, bool full, double rcut)
    {
     last_cell = &conf;
