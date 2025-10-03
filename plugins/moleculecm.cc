@@ -7,6 +7,8 @@
 #include <lpmd/simulation.h>
 
 #include <iostream>
+#include <list>
+#include <map>
 
 using namespace lpmd;
 

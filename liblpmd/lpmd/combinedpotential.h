@@ -8,6 +8,7 @@
 #define __LPMD_COMBINED_POTENTIAL_H__
 
 #include <lpmd/array.h>
+#include <lpmd/configuration.h>
 #include <lpmd/error.h>
 #include <lpmd/potential.h>
 
