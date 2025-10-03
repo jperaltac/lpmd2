@@ -9,6 +9,7 @@
 #include <lpmd/matrix.h>
 #include <lpmd/util.h>
 
+#include <list>
 #include <map>
 #include <sstream>
 
