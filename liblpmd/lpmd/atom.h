@@ -24,6 +24,8 @@ public:
     iv[0] = at.Position();
     iv[1] = at.Velocity();
     iv[2] = at.Acceleration();
+    Mass() = at.Mass();
+    Charge() = at.Charge();
     // const BasicAtom & basic_at = at;
     // const BasicAtom & my_basicat = (*this);
     // if (ColorHandler::HaveColor(basic_at)) ColorHandler::ColorOfAtom(my_basicat) =
@@ -34,10 +36,17 @@ public:
     iv[0] = at.Position();
     iv[1] = at.Velocity();
     iv[2] = at.Acceleration();
+    Mass() = at.Mass();
+    Charge() = at.Charge();
     // const BasicAtom & basic_at = at;
     // const BasicAtom & my_basicat = (*this);
     // if (ColorHandler::HaveColor(basic_at)) ColorHandler::ColorOfAtom(my_basicat) =
     // ColorHandler::ColorOfAtom(basic_at);
+  }
+
+  Atom& operator=(const Atom& at) {
+    BasicAtom::operator=(at);
+    return *this;
   }
 
   Atom(const std::string a) : BasicAtom(ElemNum(a), &iv[0], &iv[1], &iv[2]) {}

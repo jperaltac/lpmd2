@@ -15,6 +15,7 @@ public:
   Color(double red, double green, double blue) : Vector(red, green, blue) {}
   Color(const Vector& rgb) : Vector(rgb) {}
   Color(const Color& color) : Vector(color) {}
+  Color& operator=(const Color& color) = default;
 
   inline double& Red() { return (*this)[0]; }
   inline double& Green() { return (*this)[1]; }

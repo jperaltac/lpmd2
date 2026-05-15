@@ -57,7 +57,8 @@ public:
   inline BasicAtom& operator=(const BasicAtom& at) {
     if (&at != this) {
       z = at.Z();
-      mass = ElemMass[z];
+      mass = at.Mass();
+      charge = at.Charge();
       Position() = at.Position();
       Velocity() = at.Velocity();
       Acceleration() = at.Acceleration();
