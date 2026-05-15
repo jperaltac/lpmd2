@@ -45,7 +45,7 @@ int TestSuite::PerformAllTests() {
     std::cout << '\n' << impl->description << " (" << n << " tests) : " << '\n';
   int cfailed = 0;
   if (n == 0) {
-    printf("*** \e[31mNo tests defined\e[0m, this counts as a failure ***\n");
+    printf("*** \033[31mNo tests defined\033[0m, this counts as a failure ***\n");
     return 1;
   }
   for (unsigned long int q = 0; q < n; ++q) {
@@ -65,7 +65,7 @@ int TestSuite::PerformAllTests() {
     if (impl->tdfunc != NULL)
       (*(impl->tdfunc))(); // calls the teardown function for the suite
     if (r == true)
-      printf("\e[32mOK\e[0m\n");
+      printf("\033[32mOK\033[0m\n");
     else {
       if (errormsg != "")
         std::cout << errormsg << '\n';
@@ -74,11 +74,11 @@ int TestSuite::PerformAllTests() {
   }
   std::cout << "\n-> " << impl->description << ": ";
   if (cfailed > 0) {
-    printf("*** %d of %lu tests (%.3f %%) \e[31mFAILED\e[0m ***\n", cfailed, n,
+    printf("*** %d of %lu tests (%.3f %%) \033[31mFAILED\033[0m ***\n", cfailed, n,
            100.0 * float(cfailed) / n);
     return 1; // some test(s) failed
   } else {
-    printf("!!! All %lu tests \e[32mPASSED\e[0m !!!\n", n);
+    printf("!!! All %lu tests \033[32mPASSED\033[0m !!!\n", n);
     return 0; // all tests OK!
   }
 }

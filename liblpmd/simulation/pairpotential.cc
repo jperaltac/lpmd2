@@ -73,7 +73,6 @@ void PairPotential::UpdateForces(Configuration& conf) {
       }
     }
   }
-#pragma omp barrier
   double& config_virial = conf.Virial();
   energycache += etmp;
   config_virial += tmpvir;

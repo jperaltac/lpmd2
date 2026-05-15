@@ -37,19 +37,24 @@ template <typename T> double KineticEnergy(const T& atomcont, bool tag = false) 
 }
 
 template <typename T> double Temperature(const T& atomcont, const bool tag = false) {
-  if (atomcont.Size() == 0)
+  const long int atom_count = atomcont.Size();
+  if (atom_count == 0)
     return 0.0; //
-  int size = 0, tmp = 0;
-  if (tag == false)
-    size = atomcont.Size();
-  else {
-    for (long int i = 0; i < atomcont.Size(); ++i) {
-      if (atomcont.Have(atomcont[i], Tag("fixedvel")) ||
-          atomcont.Have(atomcont[i], Tag("fixedpos")))
-        ++tmp;
+
+  double kinetic_energy = 0.0;
+  long int fixed_count = 0;
+  for (long int i = 0; i < atom_count; ++i) {
+    if (tag &&
+        (atomcont.Have(atomcont[i], Tag("fixedvel")) ||
+         atomcont.Have(atomcont[i], Tag("fixedpos")))) {
+      ++fixed_count;
+      continue;
     }
+    kinetic_energy += 0.5 * atomcont[i].Mass() * atomcont[i].Velocity().SquareModule();
   }
-  return (2.0 / 3.0) * KineticEnergy(atomcont, tag) / (KBOLTZMANN * double(atomcont.Size() - tmp));
+
+  return (2.0 / 3.0) * (kinetic_energy * KIN2EV) /
+         (KBOLTZMANN * double(atom_count - fixed_count));
 }
 
 template <typename T, typename V> double Density(const T& atomcont, const V& cell) {

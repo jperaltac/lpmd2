@@ -9,7 +9,7 @@
 
 #include <lpunit/test.h>
 
-#define LPUNIT_EPICFAIL "\e[31mFAILED\e[0m\n      "
+#define LPUNIT_EPICFAIL "\033[31mFAILED\033[0m\n      "
 
 #define LPUNIT_ASSERT(a, s_a)                                                                      \
   if (!a) {                                                                                        \

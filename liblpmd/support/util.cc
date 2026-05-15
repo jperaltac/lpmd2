@@ -11,7 +11,9 @@
 
 #include <lpmd/util.h>
 
+#ifdef _MSC_VER
 #pragma warning(disable : 2259)
+#endif
 
 using namespace lpmd;
 
