@@ -12,10 +12,13 @@ set(LPMD_TEST_UNITS
     colorhandler.unit
     configurationtest.unit
     controlfile.unit
+    elementstest.unit
     fixedsizeparticlesettest.unit
     manipulations.unit
+    matrixtest.unit
     nonorthogonalcelltest.unit
     orthogonalcelltest.unit
+    paramvaluetest.unit
     particlesettest.unit
     propertiestest.unit
     simulationcelltest.unit

@@ -1,0 +1,132 @@
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <lpmd/paramlist.h>
+#include <lpmd/storedvalue.h>
+#include <lpmd/vector.h>
+
+using namespace lpmd;
+
+@testsuite Tests de ParamList y StoredValue
+
+@test Parameter convierte tipos basicos
+{
+ Parameter p("42");
+ int i = p;
+ double d = p;
+ @equal i, 42
+ @approx d, 42.0, 1.0E-12
+ p = "true";
+ bool b = p;
+ @assert b
+ p = "false";
+ b = p;
+ @assert (!b)
+}
+@end
+
+@test ParamList define lee y elimina parametros
+{
+ ParamList pl;
+ @assert (!pl.Defined("temperature"))
+ pl["temperature"] = "300.5";
+ pl["enabled"] = "true";
+ @assert pl.Defined("temperature")
+ @assert pl.Defined("enabled")
+ double t = pl["temperature"];
+ bool enabled = pl["enabled"];
+ @approx t, 300.5, 1.0E-12
+ @assert enabled
+ pl.Remove("enabled");
+ @assert (!pl.Defined("enabled"))
+}
+@end
+
+@test ParamList copia y asigna independientemente
+{
+ ParamList original;
+ original["a"] = "1";
+ original["b"] = "two";
+ ParamList copied(original);
+ ParamList assigned;
+ assigned = original;
+ original["a"] = "99";
+ original.Remove("b");
+ int copied_a = copied["a"];
+ int assigned_a = assigned["a"];
+ @equal copied_a, 1
+ @equal assigned_a, 1
+ @assert copied.Defined("b")
+ @assert assigned.Defined("b")
+ @equal copied["b"], "two"
+ @equal assigned["b"], "two"
+}
+@end
+
+@test ParamList enumera parametros ordenados por clave
+{
+ ParamList pl;
+ pl["zeta"] = "last";
+ pl["alpha"] = "first";
+ pl["middle"] = "center";
+ Array<Parameter> params = pl.Parameters();
+ @equal params.Size(), 3
+ @equal params[0], "alpha"
+ @equal params[1], "middle"
+ @equal params[2], "zeta"
+}
+@end
+
+@test StoredValue promedia numeros y reinicia
+{
+ StoredValue<double> value;
+ std::ostringstream os;
+ value.OutputAverageTo(os);
+ @equal os.str(), "0"
+ value.CurrentValue() = 2.0;
+ value.AddToAverage();
+ value.CurrentValue() = 4.0;
+ value.AddToAverage();
+ os.str("");
+ os.clear();
+ value.OutputTo(os);
+ @equal os.str(), "4"
+ os.str("");
+ os.clear();
+ value.OutputAverageTo(os);
+ @equal os.str(), "3"
+ value.ClearAverage();
+ os.str("");
+ os.clear();
+ value.OutputAverageTo(os);
+ @equal os.str(), "0"
+}
+@end
+
+@test StoredValue promedia vectores
+{
+ StoredValue<Vector> value;
+ value.CurrentValue() = Vector(1.0, 2.0, 3.0);
+ value.AddToAverage();
+ value.CurrentValue() = Vector(3.0, 4.0, 5.0);
+ value.AddToAverage();
+ std::ostringstream os;
+ value.OutputAverageTo(os);
+ @equal os.str(), "2 3 4"
+}
+@end
+
+@test AbstractValue escribe a archivo
+{
+ StoredValue<double> value;
+ value.CurrentValue() = 12.5;
+ const std::string filename = "storedvalue_output.tmp";
+ value.OutputToFile(filename);
+ std::ifstream input(filename.c_str());
+ std::string content;
+ input >> content;
+ input.close();
+ std::remove(filename.c_str());
+ @equal content, "12.5"
+}
+@end
