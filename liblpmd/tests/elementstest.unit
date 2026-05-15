@@ -1,0 +1,29 @@
+#include <lpmd/elements.h>
+
+@testsuite Tests de elementos quimicos
+
+@test Simbolos y numeros atomicos conocidos
+{
+ @equal ElemNum("e"), 0
+ @equal ElemNum("H"), 1
+ @equal ElemNum("C"), 6
+ @equal ElemNum("Fe"), 26
+ @equal ElemNum("Uuo"), 118
+}
+@end
+
+@test Masas atomicas conocidas
+{
+ @approx ElemMass[1], 1.00794, 1.0E-10
+ @approx ElemMass[6], 12.011, 1.0E-10
+ @approx ElemMass[18], 39.948, 1.0E-10
+ @approx ElemMass[79], 196.96654, 1.0E-10
+}
+@end
+
+@test Simbolo desconocido retorna cero
+{
+ @equal ElemNum("Xx"), 0
+ @equal ElemNum(""), 0
+}
+@end

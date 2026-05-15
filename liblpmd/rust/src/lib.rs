@@ -106,4 +106,90 @@ mod tests {
         };
         assert_eq!(status, -1);
     }
+
+    #[test]
+    fn rejects_non_finite_samples() {
+        let samples = [0.0, f64::NAN];
+        let mut avg = 123.0;
+        let mut var = 456.0;
+
+        let status = unsafe {
+            lpmd_histogram_summary(
+                samples.as_ptr(),
+                samples.len(),
+                0.0,
+                1.0,
+                4,
+                &mut avg,
+                &mut var,
+            )
+        };
+
+        assert_eq!(status, -2);
+        assert_eq!(avg, 123.0);
+        assert_eq!(var, 456.0);
+    }
+
+    #[test]
+    fn accepts_null_output_pointers() {
+        let samples = [1.0, 2.0, 3.0];
+
+        let status = unsafe {
+            lpmd_histogram_summary(
+                samples.as_ptr(),
+                samples.len(),
+                0.0,
+                4.0,
+                4,
+                ptr::null_mut(),
+                ptr::null_mut(),
+            )
+        };
+
+        assert_eq!(status, 0);
+    }
+
+    #[test]
+    fn rejects_invalid_ranges_and_bucket_counts() {
+        let samples = [1.0, 2.0, 3.0];
+        let mut avg = 0.0;
+
+        let zero_buckets = unsafe {
+            lpmd_histogram_summary(
+                samples.as_ptr(),
+                samples.len(),
+                0.0,
+                3.0,
+                0,
+                &mut avg,
+                ptr::null_mut(),
+            )
+        };
+        let reversed_range = unsafe {
+            lpmd_histogram_summary(
+                samples.as_ptr(),
+                samples.len(),
+                3.0,
+                0.0,
+                3,
+                &mut avg,
+                ptr::null_mut(),
+            )
+        };
+        let infinite_range = unsafe {
+            lpmd_histogram_summary(
+                samples.as_ptr(),
+                samples.len(),
+                f64::NEG_INFINITY,
+                3.0,
+                3,
+                &mut avg,
+                ptr::null_mut(),
+            )
+        };
+
+        assert_eq!(zero_buckets, -1);
+        assert_eq!(reversed_range, -1);
+        assert_eq!(infinite_range, -1);
+    }
 }
