@@ -4,9 +4,9 @@ cell cubic 16.8
 
 input crystal3d type=fcc nx=4 ny=4 nz=4 symbol=Ar
 
-monitor step,temperature,pressure start=0 each=10 end=-1 output=pt-$(TEMP).dat
+monitor step,temperature,pressure start=0 each=10 end=-1 output=pt-300.dat
 
-prepare temperature t=$(TEMP)
+prepare temperature t=300
 
 steps 5000
 

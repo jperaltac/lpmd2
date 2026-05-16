@@ -1,7 +1,7 @@
 
 cell cubic 17.1191
 
-input xyz conpbc.xyz inside=true debug=none
+input crystal3d type=fcc symbol=Ar nx=3 ny=3 nz=3
 
 use undopbc
 enduse

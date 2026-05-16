@@ -4,9 +4,9 @@ cell cubic 12.8167
 
 input crystal3d type=bcc nx=5 ny=5 nz=5 symbol=Fe
 
-monitor step,temperature,pressure start=0 each=10 end=-1 output=pt-$(TEMP).dat
+monitor step,temperature,pressure start=0 each=10 end=-1 output=pt-300.dat
 
-prepare temperature t=$(TEMP)
+prepare temperature t=300
 
 steps 5000
 

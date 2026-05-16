@@ -130,6 +130,17 @@ int UtilityControl::OnNonRegularStatement(const std::string& name,
   if (((name == "input") || (name == "prepare")) || (name == "output")) {
     impl->modulecounter[name]++;
     std::string tmp = ParseCommandArguments(params, name, "module ");
+    if (name == "input") {
+      std::string module_or_file = params[name + "-module"];
+      if (module_or_file.find('/') != std::string::npos ||
+          (module_or_file.size() >= 5 &&
+           module_or_file.rfind(".lpmd") == module_or_file.size() - 5) ||
+          (module_or_file.size() >= 4 &&
+           module_or_file.rfind(".zlp") == module_or_file.size() - 4)) {
+        params[name + "-module"] = "lpmd";
+        params[name + "-file"] = module_or_file;
+      }
+    }
     std::string validkeywords = (impl->pluginmanager)->GetPluginKeywords(params[name + "-module"]);
     std::string args = ParseCommandArguments(params, name, validkeywords);
     params[name + "-modules"] += (params[name + "-module"] + " ");
