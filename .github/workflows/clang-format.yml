@@ -22,6 +22,7 @@ on:
       - '**/*.hpp'
       - '**/*.hh'
       - '.clang-format'
+      - '.github/workflows/clang-format.yml'
 
 jobs:
   format:
@@ -29,6 +30,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install clang-format
         run: |
@@ -36,8 +39,27 @@ jobs:
           sudo apt-get install -y clang-format-15
 
       - name: Check formatting
+        env:
+          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          FILES=$(git ls-files '*.c' '*.cc' '*.cxx' '*.cpp' '*.h' '*.hh' '*.hpp')
-          if [ -n "$FILES" ]; then
-            clang-format-15 --dry-run --Werror $FILES
+          set -euo pipefail
+
+          if [ -z "${BASE_SHA}" ] || [ "${BASE_SHA}" = "0000000000000000000000000000000000000000" ]; then
+            git fetch --no-tags --depth=1 origin "${DEFAULT_BRANCH}"
+            BASE_SHA=$(git merge-base "HEAD" "origin/${DEFAULT_BRANCH}")
           fi
+
+          mapfile -d '' FILES < <(
+            git diff --name-only --diff-filter=ACMRT -z "${BASE_SHA}" HEAD -- \
+              '*.c' '*.cc' '*.cxx' '*.cpp' '*.h' '*.hh' '*.hpp'
+          )
+
+          if [ "${#FILES[@]}" -eq 0 ]; then
+            echo "No changed C/C++ files to format."
+            exit 0
+          fi
+
+          printf 'Checking clang-format for:\n'
+          printf '  %s\n' "${FILES[@]}"
+          clang-format-15 --dry-run --Werror "${FILES[@]}"
