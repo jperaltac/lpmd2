@@ -27,17 +27,17 @@ For a more detailed walkthrough of verifying the compilation outputs, see
 
 ## Running
 
-Run the simulator and let it locate the default plugin automatically:
+Run the headless smoke example to confirm the executable can locate plugins,
+generate a small crystal, advance one step, and write an XYZ file:
 
 ```bash
-./build/bin/lpmd
+mkdir -p /tmp/lpmd-smoke-run
+cd /tmp/lpmd-smoke-run
+/path/to/lpmd2/build/bin/lpmd /path/to/lpmd2/lpmd/examples/smoke.control
 ```
 
-You can also specify a plugin explicitly:
-
-```bash
-./build/bin/lpmd /path/to/plugin
-```
+The run should finish with `SIMULATION FINISHED` and write `smoke.xyz` in the
+working directory.
 
 ## Project layout
 
