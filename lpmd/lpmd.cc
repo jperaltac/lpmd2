@@ -62,6 +62,17 @@ void LPMD::Iterate() {
   ShowApplicableModules("apply");
   PrintBanner("VISUALIZERS");
   ShowApplicableModules("visualize");
+
+  if (!control.Defined("integrator-module")) {
+    PrintBanner("STATIC CONFIGURATION");
+    std::cout << "No integrator selected; writing the current configuration.\n";
+    ComputeProperties();
+    RunVisualizers();
+    SaveCurrentConfiguration();
+    PrintBanner("SIMULATION FINISHED");
+    return;
+  }
+
   PrintBanner("INTEGRATOR");
   pluginmanager[control["integrator-module"]].Show(std::cout);
 

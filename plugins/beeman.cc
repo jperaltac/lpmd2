@@ -58,7 +58,9 @@ void Beeman::Initialize(Simulation& sim, Potential& p) {
   for (long int i = 0; i < atoms.Size(); ++i)
     auxlist.push_back(Vector());
   UseOldConfig(sim);
-  p.UpdateForces(OldConfig());
+  BasicParticleSet& oldatoms = OldConfig().Atoms();
+  for (long int i = 0; i < atoms.Size(); ++i)
+    oldatoms[i].Acceleration() = atoms[i].Acceleration();
 }
 
 void Beeman::AdvancePosition(Simulation& sim, long i) {

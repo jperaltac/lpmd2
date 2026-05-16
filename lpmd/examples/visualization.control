@@ -1,6 +1,6 @@
 
 set replacecell true
-input zlp ZrO2-100conf.zlp debug=none
+input module=lpmd file=ZrO2-100conf.zlp debug=none
 
 set delay 0.1
 

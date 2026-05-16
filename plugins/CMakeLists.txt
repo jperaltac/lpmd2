@@ -14,6 +14,7 @@ cmake_minimum_required(VERSION 3.16)
 # The sources do not contain additional helper translation units, so a simple
 # glob is sufficient and keeps the list in sync when new plugins are added.
 file(GLOB PLUGIN_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
+list(REMOVE_ITEM PLUGIN_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/lpvisual_headless.cc")
 
 list(SORT PLUGIN_SOURCES)
 
@@ -40,7 +41,19 @@ foreach(plugin_src ${PLUGIN_SOURCES})
     string(REPLACE "-" "_" plugin_target "plugin_${plugin_name}")
 
     if(plugin_name IN_LIST OPENGL_PLUGINS AND NOT HAVE_OPENGL)
-        message(WARNING "Skipping '${plugin_name}' plugin: OpenGL/GLUT headers not found")
+        if(plugin_name STREQUAL "lpvisual")
+            message(WARNING "Building headless '${plugin_name}' fallback: OpenGL/GLUT headers not found")
+            add_library(${plugin_target} MODULE "${CMAKE_CURRENT_SOURCE_DIR}/lpvisual_headless.cc")
+            target_link_libraries(${plugin_target} PRIVATE lpmd::core)
+            target_compile_features(${plugin_target} PRIVATE cxx_std_17)
+            set_target_properties(${plugin_target}
+                PROPERTIES
+                    PREFIX ""
+                    OUTPUT_NAME "${plugin_name}"
+            )
+        else()
+            message(WARNING "Skipping '${plugin_name}' plugin: OpenGL/GLUT headers not found")
+        endif()
         continue()
     endif()
 

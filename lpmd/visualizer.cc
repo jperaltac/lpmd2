@@ -30,6 +30,11 @@ void Visualizer::FillAtoms() { FillAtomsFromCellReader(); }
 
 int Visualizer::Run() {
   CheckConsistency();
+  if (control.Defined("antialias-value") || control.Defined("warning-value")) {
+    std::cerr
+        << "-> Plotter control file accepted (rendering is handled by external lpmd-plotter).\n";
+    return 0;
+  }
   //
   ConstructCell();
   ConstructSimulation();
