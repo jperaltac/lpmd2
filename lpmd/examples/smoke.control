@@ -1,0 +1,23 @@
+# Minimal headless smoke example for checking that the command line application,
+# plugin loader, crystal generator, cell manager, integrator, and XYZ writer work
+# together after a build. It completes in one step and writes smoke.xyz.
+
+cell cubic 17.1191
+input crystal3d type=fcc symbol=Ar nx=1 ny=1 nz=1
+output xyz file=smoke.xyz each=1
+
+steps 1
+
+use nullpotential as none
+enduse
+
+use nullintegrator as integ
+enduse
+
+use minimumimage as cm
+    cutoff 8.0
+enduse
+
+cellmanager cm
+potential none Ar Ar
+integrator integ

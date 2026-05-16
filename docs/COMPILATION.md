@@ -30,6 +30,19 @@ The build should finish without errors, producing the following artifacts:
 These paths match the default output configuration of the CMake project and
 confirm that the compilation stage completed successfully.
 
+## Smoke example
+
+After building, run the minimal headless example from a scratch directory so
+generated files do not dirty the checkout:
+
+```bash
+mkdir -p /tmp/lpmd-smoke-run
+cd /tmp/lpmd-smoke-run
+/path/to/lpmd2/build/bin/lpmd /path/to/lpmd2/lpmd/examples/smoke.control
+```
+
+A successful run prints `SIMULATION FINISHED` and writes `smoke.xyz`.
+
 ## Testing
 
 Unit tests are gated behind the `LPMD_ENABLE_TESTS` CMake option. To compile
