@@ -34,8 +34,10 @@ void LPMD::FillAtoms() {
     RestoreSimulation();
   else
     Application::FillAtoms();
-  PrintBanner("CELL MANAGER");
-  pluginmanager[control["cellmanager-module"]].Show(std::cout);
+  if (control.Defined("cellmanager-module")) {
+    PrintBanner("CELL MANAGER");
+    pluginmanager[control["cellmanager-module"]].Show(std::cout);
+  }
   PrintBanner("INITIAL CONFIGURATION");
   simulation->ShowInfo(std::cout);
 }
