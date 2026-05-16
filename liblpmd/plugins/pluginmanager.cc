@@ -173,9 +173,9 @@ void PluginManager::UpdatePlugin(std::string id, std::string new_args) {
 
 std::string PluginManager::GetPluginKeywords(std::string name) {
   if (aliasdict.Defined(name))
-    LoadPlugin(aliasdict[name], "tmp_getpluginkeywords", "dummyargument");
+    LoadPlugin(aliasdict[name], "tmp_getpluginkeywords", "");
   else
-    LoadPlugin(name, "tmp_getpluginkeywords", "dummyargument");
+    LoadPlugin(name, "tmp_getpluginkeywords", "");
   Plugin* m = modules["tmp_getpluginkeywords"].get();
   std::string kw = m->Keywords();
   UnloadPlugin("tmp_getpluginkeywords");
