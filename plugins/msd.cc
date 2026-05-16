@@ -74,8 +74,20 @@ void MSD::Evaluate(ConfigurationSet& hist, Potential& pot) {
   assert(&pot != 0);        // icc 869
   long int N = hist.Size(); // number of configurations, not number of atoms
   DebugStream() << "-> Computing MSD over " << N << " configurations\n";
+  if (N == 0) {
+    Matrix& m = CurrentValue();
+    m = Matrix(1, 0);
+    m.SetLabel(0, "time");
+    return;
+  }
   long int nat = hist[0].Atoms().Size(); // number of atoms
   DebugStream() << "-> First configuration has " << nat << " atoms\n";
+  if (N < 2 || nat == 0) {
+    Matrix& m = CurrentValue();
+    m = Matrix(1, 0);
+    m.SetLabel(0, "time");
+    return;
+  }
   const Array<int>& elements = hist[0].Atoms().Elements();
   int nsp = elements.Size();
   int* natsp = new int[nsp];
@@ -203,8 +215,6 @@ void MSD::Evaluate(ConfigurationSet& hist, Potential& pot) {
     delete[] J1[i];
     delete[] Jr[i];
   }
-  std::cerr << "DEBUG " << elements[0] << " " << elements[1] << "\n";
-  std::cerr << "DEBUG " << natsp[0] << " " << natsp[1] << "\n";
   delete[] msd;
   delete[] J0;
   delete[] J1;

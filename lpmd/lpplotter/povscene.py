@@ -264,7 +264,7 @@ class Scene:
 
   def ShowPOV(self):
       self.GeneratePOVCode()
-      print self.povCode
+      print(self.povCode)
 
   def ExportPOV(self, povfile):
       self.GeneratePOVCode()
@@ -284,7 +284,7 @@ class Scene:
       if antialias: command += "Antialias=%s " % op['antialias']['value']
       if display: command += "Display=True 2> /dev/null "
       else: command += "Display=False 2> /dev/null"
-      print ("Executing : %s" , command)
+      print("Executing : %s" % command)
       os.system(command)
       if ("logo" in op):
        command = "convert %s -fill black -stroke black -pointsize 20 -gravity %s -annotate 0 '%s' tmp.png" % (outfile, op['logo']['type'], op['logo']['expression='])
