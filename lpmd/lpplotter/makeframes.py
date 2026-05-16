@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from povscene import *
-from parselpmd2 import LPMD2
+from .povscene import *
+from .parselpmd2 import LPMD2
 from sys import stdin
 import sys
 from os import system
@@ -27,31 +27,31 @@ def factorl(x,y): return(x[0]*y,x[1]*y,x[2]*y)
 def inside(p,a,b,c):
  wp = (a,b,c)
  for i in range(0,3):
-  if (p[i] < 0.0 or p[i]>norma(wp[i])): return 1 
+  if (p[i] < 0.0 or p[i]>norma(wp[i])): return 1
  return 0
 #Cross Defined with left-hand (povray style)
-def cross(x,y): 
+def cross(x,y):
  a = x[1]*y[2]-x[2]*y[1]
  b = x[0]*y[2]-x[2]*y[0]
  c = x[0]*y[1]-x[1]*y[0]
  return (a,-b,c)
 
 def Movie(formatinput="png"):
-    fcode = "" 
+    fcode = ""
     if option['movie']['format']!="gif":
      if option['movie']['format']=="avi": fcode = " -ovc lavc -lavcopts vcodec=mpeg4:vqscale=2:vhq:trell:autoaspect "
      if option['movie']['format']=="mpg": fcode = " -ovc lavc -lavcopts vcodec=wmv2 "
      command = "mencoder mf://*.%s -mf fps=%d -o %s %s" % (formatinput, option['movie']['value'], option['movie']['file'], fcode)
     else:
      command = "convert -loop 0 -delay %s *.%s %s" % (option['movie']['value'], formatinput, option['movie']['file'])
-    print "Generating Movie .... please wait."
+    print("Generating Movie .... please wait.")
     os.system(command)
 
 def render(lp, c):
     background = option['background']['color']
     tmp = option['size']['size'].split('x')
     sizes = (int(tmp[0]), int(tmp[1]))
-    LX = norma(lp.cell[0]) 
+    LX = norma(lp.cell[0])
     LY = norma(lp.cell[1])
     LZ = norma(lp.cell[2])
     V1 = lp.cell[0]
@@ -71,7 +71,7 @@ def render(lp, c):
     else :
      er = -1
     #cp=cameraLocation;cu=cameraUp;cl=cameraLookat;lc=LargeBetweenCLandCP
-    cp = option['cameraLocation']['position'] 
+    cp = option['cameraLocation']['position']
     cu = option['cameraUp']['position']
     cl = option['cameraLookat']['position']
     lc = distance(cp,cl)
@@ -81,15 +81,15 @@ def render(lp, c):
     aspect = -float(float(sizes[0])/float(sizes[1]))
     camepo = [cp[0], cp[1], cp[2]]
     camelo = [cl[0], cl[1], cl[2]]
-    fcl = (camelo[0], camelo[1], camelo[2]) 
+    fcl = (camelo[0], camelo[1], camelo[2])
     fcp = (camepo[0], camepo[1], camepo[2])
-    
+
     ligarg = {'color':'White'}
     camarg = {'camera':str(option['camera']['value'])}
     if("cameraAngle" in option): camarg['angle']=float(option['cameraAngle']['value'])
     if(camarg['camera']=="orthographic"):
      angle = atan(float(sizes[0])/float(lc))*180.0/pi
-     camarg['angle']=angle 
+     camarg['angle']=angle
      camarg['aspect']=aspect
      camarg['sky']=cu
     if(camarg['camera']=="perspective"):
@@ -105,7 +105,7 @@ def render(lp, c):
      ligarg['rotatepos'] = camarg['rotatepos']
      ligarg['rotatevec'] = camarg['rotatevec']
      ligarg['rotatefac'] = camarg['rotatefac']
-     print "Rotating camera by " + str(val) + " ... " 
+     print("Rotating camera by " + str(val) + " ... ")
     scene.Add(Camera(location=fcp, direction=fcl, **camarg))
 
     #LIGHTS SECTION.
@@ -120,7 +120,12 @@ def render(lp, c):
     v2 = sumlist(cl, factorl(P,-0.3333))
     fs = max((LX,LY,LZ))*1.50
     if("cameraLight" in option):
-     fs = float(option['cameraLight']['value'])
+     try:
+      fs = float(option['cameraLight']['value'])
+     except (TypeError, ValueError):
+      # Older examples use textual values such as "higher"; keep the
+      # automatically computed light distance instead of aborting.
+      pass
     lightSource0 = option['cameraLocation']['position']
     lightSource1 = sumlist(v1,factorl(q,fs))
     lightSource2 = sumlist(v1,factorl(qp,fs))
@@ -130,8 +135,8 @@ def render(lp, c):
      for i in range(1,5):
       light="lightSource"+str(i)
       if(inside(vars()[light],lp.cell[0],lp.cell[1],lp.cell[2])==0):
-       print " WARNING : Light " + str (i) + " = " + str(vars()[light])
-       print "           is inside the cell."
+       print(" WARNING : Light " + str (i) + " = " + str(vars()[light]))
+       print("           is inside the cell.")
 
     scene.AddLight(LightSource(lightSource1, shadowless=False, spot=False, **ligarg))
     scene.AddLight(LightSource(lightSource2, shadowless=False, spot=False, **ligarg))
@@ -167,7 +172,7 @@ def render(lp, c):
                   (sumlist((0,0,0),lp.cell[1]),sumlist(lp.cell[0],lp.cell[1]),sumlist(ac,lp.cell[1]),sumlist(lp.cell[2],lp.cell[1])),
                   (sumlist((0,0,0),lp.cell[0]),sumlist(lp.cell[2],lp.cell[0]),sumlist(bc,lp.cell[0]),sumlist(lp.cell[1],lp.cell[0])),
                 )
- 
+
     for i in range(1,7):
      plane = "plane" + str(i)
      if(plane in option):
@@ -179,11 +184,11 @@ def render(lp, c):
       scene.Add(bplane)
 
     #ATOMS SECTION.
-    print "Number of atoms in scene ", c, " is ", len(lp)
+    print("Number of atoms in scene ", c, " is ", len(lp))
     for atom in range(len(lp)):
         (x, y, z) = lp.PackTags(('X','Y','Z'), atom)
-	tmpx = x
-	tmpy = y
+        tmpx = x
+        tmpy = y
         tmpz = z
         x = tmpx*V1[0]+tmpy*V2[0]+tmpz*V3[0]
         y = tmpx*V1[1]+tmpy*V2[1]+tmpz*V3[1]
@@ -193,7 +198,7 @@ def render(lp, c):
         if ('rgb' in lp.tags):
          sphere.SetColor("<%f, %f, %f>" % lp.Tag('rgb', atom))
         else:
-         if ("atomcolor" in option): 
+         if ("atomcolor" in option):
           sphere.SetColor("<%f, %f, %f>" % option['atomcolor']['color'])
          else:
           sphere.SetColor("<0.0,0.0,1.0>")
@@ -213,9 +218,9 @@ def render(lp, c):
      fmt = "movie%.4d"
     ffmt = fmt % (c) + ".png"
     pfmt = fmt % (c) + ".pov"
-    print "Generating povfile %s" % (pfmt)
+    print("Generating povfile %s" % (pfmt))
     scene.ExportPOV(pfmt)
-    print "Rendering %s..." % (ffmt)
+    print("Rendering %s..." % (ffmt))
     scene.Render(ffmt, pfmt, format="png", size=sizes, antialias=True, op=option)
     if ("povfiles" in option):
      if(option['povfiles']['value']!="keep"): system("rm -f %s" % (pfmt))

@@ -125,9 +125,19 @@ void lpmd::gdr(lpmd::Configuration& con, lpmd::Potential& pot, long int nb, doub
 void lpmd::vacf(lpmd::ConfigurationSet& hist, lpmd::Potential& pot, double dt, lpmd::Matrix& m) {
   assert(&pot != 0); // icc 869
   int N = hist.Size();
+  if (N == 0) {
+    m = Matrix(1, 0);
+    m.SetLabel(0, "time");
+    return;
+  }
   const Array<int>& species = hist[0].Atoms().Elements();
   int nsp = species.Size();
   int nat = hist[0].Atoms().Size();
+  if (N < 2 || nat == 0) {
+    m = Matrix(1, 0);
+    m.SetLabel(0, "time");
+    return;
+  }
   int level = int(Parameter(hist[0].GetTag(hist[0], "level")));
 
   double** vaf = new double*[(int)(N - 1) / 2];

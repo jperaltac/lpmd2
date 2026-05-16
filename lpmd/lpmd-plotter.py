@@ -67,7 +67,7 @@ def any_contains(seq, value):
 
 def protect_quotes(txt):
     new_txt, quoted_flag = list(), False
-    for i in xrange(len(txt)):
+    for i in range(len(txt)):
         if txt[i] == '\"': quoted_flag = not quoted_flag
         if quoted_flag and txt[i] in string.whitespace: new_txt.append('\0')
         elif txt[i] != '\"': new_txt.append(txt[i])
@@ -75,7 +75,7 @@ def protect_quotes(txt):
 
 def unprotect_quotes(txt):
     new_txt = list()
-    for i in xrange(len(txt)):
+    for i in range(len(txt)):
         if txt[i] == '\0': new_txt.append(' ')
         else: new_txt.append(txt[i])
     return ''.join(new_txt)
@@ -106,7 +106,7 @@ class ControlParser(dict):
 
     def Parse(self, control):
         for cmd in allow_multiple: self[cmd] = list()
-        for line in file(control):
+        for line in open(control):
             if ignorable(line): continue
             line = line.strip()
             # Protect quotes 
@@ -116,17 +116,17 @@ class ControlParser(dict):
             lspl = [parsetoken(unprotect_quotes(substitute(x, d)).strip()) for x in line.split()]
             cmd, args, options = lspl[0], lspl[1:], dict()
             if cmd not in syntax: raise SyntaxError(line)
-            if cmd not in allow_multiple and cmd in self.keys(): raise SyntaxError(line)
+            if cmd not in allow_multiple and cmd in list(self.keys()): raise SyntaxError(line)
             if not any_contains(syntax[cmd], '=') and len(args) != len(syntax[cmd]): 
                raise SyntaxError(line)
             for i, x in enumerate(syntax[cmd]): 
                 if i < len(args): options[x] = args[i]
                 else: options[x] = None
-            if cmd in self.keys(): self[cmd].append(options)
+            if cmd in list(self.keys()): self[cmd].append(options)
             else: self[cmd] = options
 
     def Show(self):
-        for k in self.keys(): print k, self[k]
+        for k in list(self.keys()): print(k, self[k])
 
 #
 #

@@ -61,7 +61,7 @@ class LPMD2:
 
     def Read(self, path):
         self.valid = False
-        f = file(path, 'r')
+        f = open(path, 'r')
         header1 = f.readline().strip()
         if header1 != 'LPMD 2.0 L': raise WrongHeader(header1)
         header2 = f.readline().strip()
@@ -75,7 +75,7 @@ class LPMD2:
               this_config = Configuration(self.tags)
               cellvectors = [float(x.strip()) for x in f.readline().split()]
               for q in range(3): this_config.cell[q] = tuple(cellvectors[3*q:3*q+3])
-              for i in xrange(int(atoms)):
+              for i in range(int(atoms)):
                   line = f.readline()
                   if line == '': raise UnexpectedEndOfFile(path)
                   this_config.append(SplitLine(line))
@@ -84,7 +84,7 @@ class LPMD2:
 
     def ReadInPlace(self, path, temp_config, callback):
         self.valid = False
-        f = file(path, 'r')
+        f = open(path, 'r')
         header1 = f.readline().strip()
         if header1 != 'LPMD 2.0 L': raise WrongHeader(header1)
         header2 = f.readline().strip()
@@ -98,7 +98,7 @@ class LPMD2:
               this_config = Configuration(self.tags)
               cellvectors = [float(x.strip()) for x in f.readline().split()]
               for q in range(3): this_config.cell[q] = tuple(cellvectors[3*q:3*q+3])
-              for i in xrange(int(atoms)):
+              for i in range(int(atoms)):
                   line = f.readline()
                   if line == '': raise UnexpectedEndOfFile(path)
                   this_config.append(SplitLine(line))
@@ -107,7 +107,7 @@ class LPMD2:
         self.Valid = True
 
     def Write(self, path):
-        f = file(path, 'w')
+        f = open(path, 'w')
         f.write('LPMD 2.0 L\nHDR '+' '.join(self.tags)+'\n')
         for conf in self.configs:
             f.write('%d\n' % len(conf)) 
