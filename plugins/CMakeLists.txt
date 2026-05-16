@@ -28,6 +28,29 @@ find_package(ZLIB REQUIRED)
 find_package(OpenGL)
 find_package(GLUT)
 
+
+if(LPMD_ENABLE_RUST_HOTSPOTS)
+    find_program(CARGO_EXECUTABLE cargo REQUIRED)
+    set(LPMD_RUST_DIR "${CMAKE_SOURCE_DIR}/liblpmd/rust")
+    set(LPMD_RUST_CDYLIB "${LPMD_RUST_DIR}/target/release/${CMAKE_SHARED_LIBRARY_PREFIX}lpmd_stats${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    set(LPMD_RUST_BUILD_LIB "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${CMAKE_SHARED_LIBRARY_PREFIX}lpmd_stats${CMAKE_SHARED_LIBRARY_SUFFIX}")
+
+    add_custom_command(
+        OUTPUT "${LPMD_RUST_BUILD_LIB}"
+        COMMAND "${CMAKE_COMMAND}" -E make_directory "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
+        COMMAND "${CARGO_EXECUTABLE}" build --release --manifest-path "${LPMD_RUST_DIR}/Cargo.toml"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${LPMD_RUST_CDYLIB}" "${LPMD_RUST_BUILD_LIB}"
+        DEPENDS
+            "${LPMD_RUST_DIR}/Cargo.toml"
+            "${LPMD_RUST_DIR}/Cargo.lock"
+            "${LPMD_RUST_DIR}/src/lib.rs"
+            "${LPMD_RUST_DIR}/include/lpmd/rust_hotspots.h"
+        COMMENT "Building experimental Rust hotspot helpers"
+        VERBATIM
+    )
+    add_custom_target(lpmd_rust_hotspots DEPENDS "${LPMD_RUST_BUILD_LIB}")
+endif()
+
 set(HAVE_OPENGL OFF)
 if(OpenGL_FOUND AND GLUT_FOUND)
     set(HAVE_OPENGL ON)
@@ -75,5 +98,15 @@ foreach(plugin_src ${PLUGIN_SOURCES})
 
     if(plugin_name IN_LIST OPENGL_PLUGINS)
         target_link_libraries(${plugin_target} PRIVATE OpenGL::GL OpenGL::GLU GLUT::GLUT)
+    endif()
+
+    if(LPMD_ENABLE_RUST_HOTSPOTS AND plugin_name STREQUAL "minimumimage")
+        add_dependencies(${plugin_target} lpmd_rust_hotspots)
+        target_compile_definitions(${plugin_target} PRIVATE LPMD_ENABLE_RUST_HOTSPOTS=1)
+        target_include_directories(${plugin_target} PRIVATE "${LPMD_RUST_DIR}/include")
+        target_link_libraries(${plugin_target} PRIVATE "${LPMD_RUST_BUILD_LIB}")
+        if(UNIX AND NOT APPLE)
+            set_property(TARGET ${plugin_target} APPEND PROPERTY BUILD_RPATH "\$ORIGIN")
+        endif()
     endif()
 endforeach()

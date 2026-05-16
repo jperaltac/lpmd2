@@ -18,6 +18,7 @@ endif()
 
 include(CTest)
 option(LPMD_ENABLE_TESTS "Build lpmd unit tests" ${BUILD_TESTING})
+option(LPMD_ENABLE_RUST_HOTSPOTS "Build experimental Rust hotspot helpers" OFF)
 if(LPMD_ENABLE_TESTS)
     enable_testing()
 endif()

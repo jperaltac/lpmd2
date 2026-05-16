@@ -13,9 +13,10 @@ Rust se llama [`csta`](https://crates.io/crates/csta), no `cesta`.
 - **Qué añade LPMD encima:** el crate local `lpmd_stats` expone una función C
   ABI llamada `lpmd_histogram_summary` para que, en el futuro, código C o C++
   pueda pedir ese resumen estadístico sin conocer Rust.
-- **Estado actual:** el crate Rust compila y se prueba de forma independiente,
-  pero todavía **no está enlazado por CMake ni invocado por el flujo normal de
-  `lpmd`, `lpmd-analyzer`, `lpmd-converter` o los plugins C++**.
+- **Estado actual:** el crate Rust compila y se prueba de forma independiente.
+  Además, CMake puede enlazarlo de forma experimental con el plugin
+  `minimumimage` cuando se configura `-DLPMD_ENABLE_RUST_HOTSPOTS=ON`; el flujo
+  normal lo mantiene desactivado por defecto.
 
 ## ¿Qué problema intenta resolver?
 
@@ -108,6 +109,30 @@ pub unsafe extern "C" fn lpmd_histogram_summary(
 - La función no reserva ni libera memoria para el llamador; solo escribe valores
   escalares en los punteros de salida.
 
+## Hotspot experimental: lista de vecinos ortogonal
+
+El crate también expone `lpmd_build_neighbor_list_orthogonal`, una función C ABI
+para construir, por lotes, la lista de vecinos de un átomo en una celda
+ortogonal usando buffers planos:
+
+- entrada: posiciones `x, y, z` contiguas, longitudes de celda, periodicidad,
+  índice central, `cutoff` y modo `full`;
+- salida: índices vecinos, vectores `rij`, distancias cuadradas `r2` y contador
+  de resultados;
+- ownership: C/C++ reserva y libera todos los buffers; Rust solo valida y
+  escribe resultados.
+
+Esta ruta se usa desde `plugins/minimumimage.cc` solo cuando el build activa
+`LPMD_ENABLE_RUST_HOTSPOTS`. Si Rust rechaza los datos o la celda no es
+ortogonal, el plugin cae al camino C++ existente.
+
+Para compilar la PoC desde la raíz del repositorio:
+
+```bash
+cmake -S . -B build-rust-hotspots -DCMAKE_BUILD_TYPE=Release -DLPMD_ENABLE_RUST_HOTSPOTS=ON
+cmake --build build-rust-hotspots --target plugin_minimumimage
+```
+
 ## Cómo se compila y se prueba hoy
 
 Desde este directorio:
@@ -141,8 +166,8 @@ El artefacto esperado queda bajo `liblpmd/rust/target/release/`, por ejemplo
 
 ## Cómo se incorporaría desde C/C++
 
-Aunque el flujo CMake actual todavía no lo hace automáticamente, la función fue
-escrita para poder llamarse desde C o C++ mediante una declaración compatible:
+La función de histograma puede llamarse desde C o C++ mediante una declaración
+compatible:
 
 ```cpp
 #include <cstddef>
