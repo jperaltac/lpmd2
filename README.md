@@ -128,6 +128,10 @@ ctest --test-dir build --output-on-failure
 - `lpmd/examples/` – runnable control files and sample structures.
 - `docs/` – build verification notes and additional technical documentation.
 - `scripts/` – helper scripts for local setup.
+- `liblpmd/rust/` – experimental Rust crate (`lpmd_stats`) that currently
+  uses the `csta` statistics crate behind a C ABI; see
+  [`liblpmd/rust/README.md`](liblpmd/rust/README.md) for its status and
+  integration notes.
 
 ## Development notes
 
