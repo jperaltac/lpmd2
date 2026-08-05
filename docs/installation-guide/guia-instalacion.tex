@@ -1,0 +1,194 @@
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=1.35cm]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{multicol}
+\usepackage{microtype}
+\usepackage{fancyhdr}
+
+\definecolor{lpmdblue}{HTML}{174A73}
+\definecolor{lpmdlight}{HTML}{EEF5FA}
+\definecolor{lpmdgreen}{HTML}{24735C}
+\definecolor{codegray}{HTML}{F3F4F5}
+
+\hypersetup{colorlinks=true,urlcolor=lpmdblue,linkcolor=lpmdblue}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setlength{\columnsep}{0.85cm}
+\setlist[itemize]{leftmargin=*,itemsep=2pt,topsep=3pt}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[C]{\footnotesize LPMD 2 --- Guía rápida de instalación y primera ejecución}
+
+\lstdefinestyle{terminal}{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{codegray},
+  frame=single,
+  rulecolor=\color{lpmdblue!35},
+  framerule=0.4pt,
+  breaklines=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  aboveskip=6pt,
+  belowskip=7pt
+}
+
+\newcommand{\sectiontitle}[1]{%
+  \vspace{5pt}{\large\bfseries\color{lpmdblue}#1}\par
+  \vspace{2pt}\color{lpmdblue!35}\hrule\color{black}\vspace{6pt}
+}
+
+\newcommand{\notice}[1]{%
+  \fcolorbox{lpmdgreen!55}{lpmdgreen!7}{%
+    \begin{minipage}{0.94\linewidth}\small #1\end{minipage}}}
+
+\begin{document}
+
+\begin{center}
+  {\Huge\bfseries\color{lpmdblue} Instalar y probar LPMD 2}\par
+  \vspace{2pt}
+  {\large Guía rápida para Linux}\par
+  \vspace{5pt}
+  \color{lpmdblue!35}\rule{\linewidth}{1.2pt}
+\end{center}
+
+\begin{multicols}{2}
+
+\sectiontitle{0. Obtener el código}
+
+Clona el repositorio y entra en su directorio. Los pasos siguientes deben
+ejecutarse desde allí:
+
+\begin{lstlisting}[style=terminal]
+git clone https://github.com/jperaltac/lpmd2.git
+cd lpmd2
+\end{lstlisting}
+
+\sectiontitle{1. Preparar el sistema}
+
+Instala las dependencias de compilación:
+
+\begin{lstlisting}[style=terminal]
+./scripts/install_requirements.sh
+\end{lstlisting}
+
+Se requiere CMake 3.16 o posterior, un compilador C++17 y los archivos de
+desarrollo de zlib. OpenGL/GLUT es opcional para los plugins gráficos.
+
+\sectiontitle{2. Compilar}
+
+Configura una compilación optimizada y construye todos los objetivos:
+
+\begin{lstlisting}[style=terminal]
+cmake -S . -B build \
+  -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j
+\end{lstlisting}
+
+Los ejecutables quedan temporalmente en \texttt{build/bin} y los plugins en
+\texttt{build/lib}.
+
+\sectiontitle{3. Instalar}
+
+\textbf{Opción A: instalación para todo el sistema}
+
+El prefijo predeterminado es \texttt{/usr/local}; normalmente requiere
+privilegios administrativos:
+
+\begin{lstlisting}[style=terminal]
+sudo cmake --install build
+\end{lstlisting}
+
+\textbf{Opción B: instalación solo para el usuario}
+
+No requiere \texttt{root}. El prefijo debe definirse al configurar:
+
+\begin{lstlisting}[style=terminal]
+cmake -S . -B build-user \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_INSTALL_PREFIX="$HOME/.local"
+cmake --build build-user -j
+cmake --install build-user
+\end{lstlisting}
+
+Si es necesario, habilita los ejecutables instalados en la sesión actual:
+
+\begin{lstlisting}[style=terminal]
+export PATH="$HOME/.local/bin:$PATH"
+\end{lstlisting}
+
+\columnbreak
+
+\sectiontitle{4. Comprobar la instalación}
+
+Comprueba que el sistema encuentre el programa:
+
+\begin{lstlisting}[style=terminal]
+command -v lpmd
+lpmd --help
+\end{lstlisting}
+
+La instalación incluye:
+
+\begin{itemize}
+  \item los ejecutables \texttt{lpmd}, \texttt{lpmd-analyzer},\newline
+        \texttt{lpmd-converter} y \texttt{lpmd-visualizer};
+  \item la biblioteca \texttt{liblpmd} y sus cabeceras C++;
+  \item los módulos cargables en \texttt{lib/lpmd};
+  \item integración con CMake y \texttt{pkg-config}.
+\end{itemize}
+
+\sectiontitle{5. Ejecutar un ejemplo simple}
+
+El ejemplo \texttt{smoke.control} crea cuatro átomos de argón, ejecuta un paso
+sin fuerzas y escribe \texttt{smoke.xyz}. Para mantener limpio el repositorio:
+
+\begin{lstlisting}[style=terminal]
+mkdir -p /tmp/lpmd-smoke
+cd /tmp/lpmd-smoke
+lpmd /ruta/al/repositorio/lpmd/examples/\
+smoke.control
+\end{lstlisting}
+
+Reemplaza \texttt{/ruta/al/repositorio} por la ruta real del checkout. Una
+ejecución correcta muestra:
+
+\begin{lstlisting}[style=terminal]
+SIMULATION FINISHED
+\end{lstlisting}
+
+y crea \texttt{/tmp/lpmd-smoke/smoke.xyz}. Puedes inspeccionar sus primeras
+líneas mediante:
+
+\begin{lstlisting}[style=terminal]
+head smoke.xyz
+\end{lstlisting}
+
+\sectiontitle{Solución rápida de problemas}
+
+\begin{itemize}
+  \item Si \texttt{lpmd} no aparece, revisa \texttt{PATH} o ejecútalo con su
+        ruta completa, por ejemplo \texttt{\$HOME/.local/bin/lpmd}.
+  \item Si usas plugins externos, agrega sus directorios a
+        \texttt{LPMD\_PATH}, separados por dos puntos.
+  \item Para cambiar el prefijo, vuelve a ejecutar la configuración de CMake;
+        no basta con cambiarlo solamente durante \texttt{cmake --install}.
+\end{itemize}
+
+\vfill
+\notice{\textbf{Consejo:} para actualizar la instalación después de modificar
+el código, repite \texttt{cmake --build build} y luego
+\texttt{sudo cmake --install build}.}
+
+\end{multicols}
+
+\end{document}
