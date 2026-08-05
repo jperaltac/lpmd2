@@ -51,6 +51,10 @@ foreach(plugin_src ${PLUGIN_SOURCES})
                     PREFIX ""
                     OUTPUT_NAME "${plugin_name}"
             )
+            install(TARGETS ${plugin_target}
+                LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/lpmd
+                RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/lpmd
+            )
         else()
             message(WARNING "Skipping '${plugin_name}' plugin: OpenGL/GLUT headers not found")
         endif()
@@ -76,4 +80,9 @@ foreach(plugin_src ${PLUGIN_SOURCES})
     if(plugin_name IN_LIST OPENGL_PLUGINS)
         target_link_libraries(${plugin_target} PRIVATE OpenGL::GL OpenGL::GLU GLUT::GLUT)
     endif()
+
+    install(TARGETS ${plugin_target}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/lpmd
+        RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/lpmd
+    )
 endforeach()

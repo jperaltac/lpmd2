@@ -1,10 +1,11 @@
-prefix=$(prefix)
-exec_prefix=$(prefix)/bin
-libdir=$(prefix)/lib
-includedir=$(prefix)/include
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 
 Name: liblpmd
 Description: An object-oriented, modular Molecular Dynamics library
-Version: $(version)
-Libs: -L$(prefix)/lib -llpmd -ldl -lm
-Cflags: -I$(prefix)/include
+Version: @PROJECT_VERSION@
+Libs: -L${libdir} -llpmd
+Libs.private: -ldl -lm
+Cflags: -I${includedir}

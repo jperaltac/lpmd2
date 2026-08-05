@@ -85,6 +85,41 @@ cd /tmp/lpmd-smoke-run
 A successful run prints `SIMULATION FINISHED` and writes `smoke.xyz` in the
 scratch directory.
 
+## Install
+
+After building, install the command-line tools, core library, plugins, public
+headers, Python plotter, man pages, and CMake/pkg-config metadata:
+
+```bash
+sudo cmake --install build
+```
+
+The default prefix is `/usr/local`. Configure a different system prefix before
+building when required:
+
+```bash
+cmake -S . -B build -DCMAKE_INSTALL_PREFIX=/usr
+cmake --build build
+sudo cmake --install build
+```
+
+Root privileges are not required for an installation owned by the current
+user. For example:
+
+```bash
+cmake -S . -B build-user -DCMAKE_INSTALL_PREFIX="$HOME/.local"
+cmake --build build-user
+cmake --install build-user
+```
+
+In that case, ensure `$HOME/.local/bin` is in `PATH`. Plugins are discovered
+automatically from the configured installation prefix; `LPMD_PATH` remains
+available for additional plugin directories.
+
+Downstream CMake projects can use `find_package(lpmd2 CONFIG REQUIRED)` and
+link to `lpmd::core`. Alternatively, `pkg-config --cflags --libs liblpmd`
+provides the compiler and linker flags.
+
 ## Run the bundled examples
 
 The example control files live in [`lpmd/examples/`](lpmd/examples/). Most of

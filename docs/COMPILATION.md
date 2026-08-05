@@ -23,12 +23,27 @@ compiles successfully from a clean checkout.
 The build should finish without errors, producing the following artifacts:
 
 - `build/bin/lpmd` – the main executable.
-- `build/lib/libliblpmd.a` – the static library that exposes the simulation
+- `build/lib/liblpmd.a` – the static library that exposes the simulation
   core.
 - `build/lib/lpmd_force_constant.so` – the sample force field plugin.
 
 These paths match the default output configuration of the CMake project and
 confirm that the compilation stage completed successfully.
+
+## Installation verification
+
+To verify installation without writing to system directories, configure a
+temporary prefix and run the installed executable:
+
+```bash
+cmake -S . -B build-install -DCMAKE_INSTALL_PREFIX=/tmp/lpmd2-install
+cmake --build build-install
+cmake --install build-install
+/tmp/lpmd2-install/bin/lpmd /path/to/lpmd2/lpmd/examples/smoke.control
+```
+
+For a normal system-wide install, use the default `/usr/local` prefix and run
+`sudo cmake --install build` after compilation.
 
 ## Smoke example
 

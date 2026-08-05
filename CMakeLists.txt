@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(lpmd2 VERSION 0.1.0 LANGUAGES CXX)
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 # Provide a sensible default build type for single-config generators
 if(NOT CMAKE_CONFIGURATION_TYPES)
     set(_LPMD_BUILD_TYPES Debug Release RelWithDebInfo MinSizeRel)
@@ -30,3 +33,29 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 add_subdirectory(liblpmd)
 add_subdirectory(plugins)
 add_subdirectory(lpmd)
+
+configure_package_config_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/lpmd2Config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/lpmd2Config.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/lpmd2
+)
+
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/lpmd2ConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+install(
+    EXPORT lpmd2Targets
+    FILE lpmd2Targets.cmake
+    NAMESPACE lpmd::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/lpmd2
+)
+
+install(
+    FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/lpmd2Config.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/lpmd2ConfigVersion.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/lpmd2
+)

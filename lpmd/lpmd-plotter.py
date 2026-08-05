@@ -1,6 +1,17 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import sys, string
+import os, sys, string
+
+# Locate the bundled module both in the build tree (../lib) and after a normal
+# CMake installation (../share/lpmd/python), without requiring PYTHONPATH.
+_script_dir = os.path.dirname(os.path.realpath(__file__))
+for _module_dir in (
+    os.path.normpath(os.path.join(_script_dir, '..', 'lib')),
+    os.path.normpath(os.path.join(_script_dir, '..', 'share', 'lpmd', 'python')),
+):
+    if os.path.isdir(os.path.join(_module_dir, 'lpplotter')):
+        sys.path.insert(0, _module_dir)
+        break
 from lpplotter import *
 from lpplotter.makeframes import *
 from lpplotter.povscene import *

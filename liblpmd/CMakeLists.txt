@@ -71,10 +71,11 @@ set(LPMLPD_SOURCES
 list(TRANSFORM LPMLPD_SOURCES PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${LPMLPD_SOURCES})
 
-set(LPMD_DEFAULT_PLUGIN_PATH "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
-if(NOT LPMD_DEFAULT_PLUGIN_PATH)
-    set(LPMD_DEFAULT_PLUGIN_PATH "${CMAKE_BINARY_DIR}/lib")
-endif()
+# Keep binaries runnable directly from the build tree, while also teaching an
+# installed binary where CMake installs the runtime modules.
+set(LPMD_DEFAULT_PLUGIN_PATH
+    "${CMAKE_INSTALL_FULL_LIBDIR}/lpmd:${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
+)
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
@@ -85,12 +86,17 @@ configure_file(
 add_library(lpmd_core ${LPMLPD_SOURCES})
 add_library(lpmd::core ALIAS lpmd_core)
 
-set_target_properties(lpmd_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(lpmd_core PROPERTIES
+    EXPORT_NAME core
+    OUTPUT_NAME lpmd
+    POSITION_INDEPENDENT_CODE ON
+)
 
 target_include_directories(lpmd_core
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_CURRENT_BINARY_DIR}
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 target_compile_features(lpmd_core PUBLIC cxx_std_17)
@@ -98,6 +104,39 @@ target_compile_features(lpmd_core PUBLIC cxx_std_17)
 if(UNIX AND NOT APPLE)
     target_link_libraries(lpmd_core PRIVATE dl)
 endif()
+
+install(
+    TARGETS lpmd_core
+    EXPORT lpmd2Targets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lpmd/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lpmd
+    FILES_MATCHING PATTERN "*.h"
+)
+
+# A small part of the public API includes these headers as <runtime/...>.
+install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/runtime/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/runtime
+    FILES_MATCHING PATTERN "*.h"
+)
+
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/liblpmd-2.0.pc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/liblpmd.pc
+    @ONLY
+)
+
+install(
+    FILES ${CMAKE_CURRENT_BINARY_DIR}/liblpmd.pc
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+)
 
 if(LPMD_ENABLE_TESTS)
     add_subdirectory(lpunit)

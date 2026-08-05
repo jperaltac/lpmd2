@@ -63,6 +63,8 @@ foreach(app_name ${LPMD_APPS})
     if(NOT app_name STREQUAL "lpmd")
         set_target_properties(${target_name} PROPERTIES OUTPUT_NAME "${app_name}")
     endif()
+
+    install(TARGETS ${target_name} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endforeach()
 
 set(LPMD_PYTHON_BIN_SCRIPTS
@@ -76,6 +78,11 @@ foreach(script ${LPMD_PYTHON_BIN_SCRIPTS})
         COPYONLY
     )
 endforeach()
+
+install(
+    PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/lpmd-plotter.py
+    DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 
 set(LPMD_PYTHON_PACKAGE_SCRIPTS
     lpplotter/__init__.py
@@ -95,3 +102,18 @@ if(LPMD_PYTHON_PACKAGE_SCRIPTS)
         )
     endforeach()
 endif()
+
+install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lpplotter/
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/lpmd/python/lpplotter
+    FILES_MATCHING PATTERN "*.py"
+)
+
+install(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/man/lpmd.1
+        ${CMAKE_CURRENT_SOURCE_DIR}/man/lpmd-analyzer.1
+        ${CMAKE_CURRENT_SOURCE_DIR}/man/lpmd-converter.1
+        ${CMAKE_CURRENT_SOURCE_DIR}/man/lpmd-visualizer.1
+    DESTINATION ${CMAKE_INSTALL_MANDIR}/man1
+)
