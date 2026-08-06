@@ -391,8 +391,7 @@ Display::~Display() {}
 //-----------------------------------------------------------//
 void Display::SetupDisplay(int width, int height, int nplon, int nplat, double phi, double theta) {
   int argc = 1;
-  char argvstring[8];
-  strncpy(argvstring, "lpvisual", 8);
+  char argvstring[] = "lpvisual";
   char* argv = argvstring;
   glutInit(&argc, &argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH); // Initialize display mode
@@ -683,45 +682,33 @@ void SolidCylinder(double r, double h) {
 //-------------------------------------------------------------------------------------------------------------------//
 //------------------------------------------------ Print
 //------------------------------------------------------------//
+namespace {
+void RenderText(void* letter, const std::string& text, double posx, double posy, double posz) {
+  glRasterPos3f(posx, posy, posz);
+  for (unsigned char character : text)
+    glutBitmapCharacter(letter, character);
+}
+} // namespace
+
 // Print a string at the origin
-void Print(char TXT[], void* letter, std::string st) {
-  std::stringstream txt;
-  txt << st;
-  strcpy(TXT, (txt.str()).c_str());
-  glRasterPos3f(0, 0, 0);
-  for (unsigned int i = 0; i < strlen(TXT); i++) {
-    glutBitmapCharacter(letter, TXT[i]);
-  }
+void Print(char[], void* letter, std::string st) {
+  RenderText(letter, st, 0, 0, 0);
 }
 // Print a string in position (posx,posy,posz)
-void Print(char TXT[], void* letter, std::string st, double posx, double posy, double posz) {
-  std::stringstream txt;
-  txt << st;
-  strcpy(TXT, (txt.str()).c_str());
-  glRasterPos3f(posx, posy, posz);
-  for (unsigned int i = 0; i < strlen(TXT); i++) {
-    glutBitmapCharacter(letter, TXT[i]);
-  }
+void Print(char[], void* letter, std::string st, double posx, double posy, double posz) {
+  RenderText(letter, st, posx, posy, posz);
 }
 // Print a string and a value
-void Print(char TXT[], void* letter, std::string st, double value, double posx, double posy,
+void Print(char[], void* letter, std::string st, double value, double posx, double posy,
            double posz) {
   std::stringstream txt;
   txt << st << ": " << value;
-  strcpy(TXT, (txt.str()).c_str());
-  glRasterPos3f(posx, posy, posz);
-  for (unsigned int i = 0; i < strlen(TXT); i++) {
-    glutBitmapCharacter(letter, TXT[i]);
-  }
+  RenderText(letter, txt.str(), posx, posy, posz);
 }
 // Print an ostream
-void Print(char TXT[], void* letter, std::stringstream& txt, double posx, double posy,
+void Print(char[], void* letter, std::stringstream& txt, double posx, double posy,
            double posz) {
-  strcpy(TXT, (txt.str()).c_str());
-  glRasterPos3f(posx, posy, posz);
-  for (unsigned int i = 0; i < strlen(TXT); i++) {
-    glutBitmapCharacter(letter, TXT[i]);
-  }
+  RenderText(letter, txt.str(), posx, posy, posz);
 }
 //------------------------------------------------------------------------------------------------------------------------//
 //------------------------------------------------- Draw Zoomer
