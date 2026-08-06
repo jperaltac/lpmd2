@@ -8,7 +8,8 @@ monitor step,temperature,pressure start=0 each=10 end=-1 output=pt-300.dat
 
 prepare temperature t=300
 
-steps 5000
+# Short verification run; increase this value for a production simulation.
+steps 20
 
 use velocityverlet
     dt 1.0
@@ -34,4 +35,3 @@ cellmanager linkedcell
 
 potential suttonchen Fe Fe
 integrator velocityverlet
-

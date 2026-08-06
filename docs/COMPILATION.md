@@ -30,6 +30,14 @@ The build should finish without errors, producing the following artifacts:
 These paths match the default output configuration of the CMake project and
 confirm that the compilation stage completed successfully.
 
+The plotter examples require Povray. On Debian/Ubuntu, install it (and common
+movie encoders) with:
+
+```bash
+sudo apt-get update
+sudo apt-get install povray imagemagick ffmpeg
+```
+
 ## Installation verification
 
 To verify installation without writing to system directories, configure a

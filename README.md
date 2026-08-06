@@ -51,6 +51,16 @@ available before configuring the project:
 - Optional for `lpmd-plotter.py`: Python, Povray, and a movie/GIF encoder such
   as `mencoder` or ImageMagick, depending on the requested output.
 
+On Debian/Ubuntu, Povray and the common animation tools can be installed with:
+
+```bash
+sudo apt-get update
+sudo apt-get install povray imagemagick ffmpeg
+```
+
+Povray is required for the plotter examples; ImageMagick or FFmpeg is only
+needed by examples that produce animated image/video output.
+
 ## Build
 
 Configure and compile from the repository root:

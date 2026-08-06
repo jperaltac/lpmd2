@@ -68,8 +68,9 @@ PYTHONPATH=../../build/lib python3 ../../build/bin/lpmd-plotter.py <control-file
 
 ## Metal simulation examples
 
-These examples are longer 20,000-step runs and write both trajectory data and a
-`properties.dat` monitor file.
+These examples are configured as short 20-step verification runs and write both
+trajectory data and a `properties.dat` monitor file. Increase `steps` in the
+control file for a production simulation.
 
 | Example | Description | How to run from `lpmd/examples` |
 | --- | --- | --- |

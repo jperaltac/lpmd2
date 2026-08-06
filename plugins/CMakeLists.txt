@@ -14,7 +14,10 @@ cmake_minimum_required(VERSION 3.16)
 # The sources do not contain additional helper translation units, so a simple
 # glob is sufficient and keeps the list in sync when new plugins are added.
 file(GLOB PLUGIN_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
-list(REMOVE_ITEM PLUGIN_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/lpvisual_headless.cc")
+list(REMOVE_ITEM PLUGIN_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/display.cc"
+    "${CMAKE_CURRENT_SOURCE_DIR}/lpvisual_headless.cc"
+)
 
 list(SORT PLUGIN_SOURCES)
 
@@ -61,7 +64,14 @@ foreach(plugin_src ${PLUGIN_SOURCES})
         continue()
     endif()
 
-    add_library(${plugin_target} MODULE "${plugin_src}")
+    set(plugin_sources "${plugin_src}")
+    if(plugin_name STREQUAL "lpvisual")
+        # display.cc implements the Display class used by lpvisual.cc.  It is
+        # a helper translation unit, not an independent plugin module.
+        list(APPEND plugin_sources "${CMAKE_CURRENT_SOURCE_DIR}/display.cc")
+    endif()
+
+    add_library(${plugin_target} MODULE ${plugin_sources})
     target_link_libraries(${plugin_target} PRIVATE lpmd::core)
     target_compile_features(${plugin_target} PRIVATE cxx_std_17)
 

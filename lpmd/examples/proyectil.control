@@ -20,9 +20,10 @@ use settag as proyectil
 enduse
 
 apply proyectil start=0 end=1 each=1 over sphere radius=5.0 center=<17.911,17.911,26.827>
-steps 100000
+# Short verification run; increase these values for a production simulation.
+steps 20
 
-monitor step,potential-energy,kinetic-energy,total-energy,temperature start=0 end=100000 each=500
+monitor step,potential-energy,kinetic-energy,total-energy,temperature start=0 end=20 each=5
 prepare temperature t=200.0
 
 use lennardjones
@@ -62,4 +63,3 @@ integrator euler start=0
 apply tempscaling end=60000 each=2000
 apply freeze start=60001 each=200
 visualize lpvisual each=20
-

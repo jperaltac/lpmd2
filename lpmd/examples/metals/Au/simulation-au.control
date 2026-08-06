@@ -8,7 +8,8 @@ monitor step,total-energy,temperature,pressure,density,px,py,pz,virial-pressure,
 prepare temperature t=300
 
 
-steps 20000
+# Short verification run; increase this value for a production simulation.
+steps 20
 
 #Modules Declaration
 use velocityverlet
