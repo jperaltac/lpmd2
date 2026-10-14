@@ -1,5 +1,12 @@
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
+add_executable(forceparallel_test forceparallel.cc)
+target_link_libraries(forceparallel_test PRIVATE lpmd::core)
+if(LPMD_ENABLE_OPENMP)
+    target_link_libraries(forceparallel_test PRIVATE OpenMP::OpenMP_CXX)
+endif()
+add_test(NAME lpmd.forceparallel COMMAND forceparallel_test)
+
 if(NOT LPMD_LPUNIT_GENERATOR)
     message(FATAL_ERROR "LPUnit generator path not provided")
 endif()
@@ -40,7 +47,7 @@ foreach(disabled ${LPMD_DISABLED_TESTS})
     message(WARNING "Skipping ${disabled} because required headers are unavailable")
 endforeach()
 
-set(LPMD_TEST_TARGETS)
+set(LPMD_TEST_TARGETS forceparallel_test)
 
 foreach(unit ${LPMD_TEST_UNITS})
     get_filename_component(test_name ${unit} NAME_WE)

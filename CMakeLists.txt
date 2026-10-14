@@ -20,6 +20,11 @@ if(NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 include(CTest)
+option(LPMD_ENABLE_OPENMP "Parallelize core force calculations with OpenMP" OFF)
+if(LPMD_ENABLE_OPENMP)
+    find_package(OpenMP REQUIRED COMPONENTS CXX)
+endif()
+
 option(LPMD_ENABLE_TESTS "Build lpmd unit tests" ${BUILD_TESTING})
 if(LPMD_ENABLE_TESTS)
     enable_testing()

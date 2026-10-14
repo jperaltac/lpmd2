@@ -55,6 +55,13 @@ PYTHONPATH=../../build/lib python3 ../../build/bin/lpmd-plotter.py <control-file
 
 ## Argon simulation examples
 
+The [`shock-wave/`](shock-wave/README.md) directory adds a deterministic,
+headless compression example with two opposing halves of an FCC Ar crystal.
+Its Spanish guide covers compiling with OpenMP, running a 1152-atom check and
+the 6912-atom shock simulation, exporting density/velocity profiles, and
+comparing timings with different thread counts. Run each case in its own
+output directory using the absolute control-file path; no input data are needed.
+
 | Example | Description | How to run from `lpmd/examples` |
 | --- | --- | --- |
 | `argon.control` | Basic Lennard-Jones Ar simulation with Beeman integration, temperature scaling, radial distribution output, and `output.xyz`. | `../../build/bin/lpmd argon.control` |

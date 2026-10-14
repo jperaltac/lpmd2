@@ -6,6 +6,7 @@
 #include <lpmd/matrix.h>
 #include <lpmd/pairpotential.h>
 #include <runtime/runtime_context.h>
+#include "forceaccumulator.h"
 
 using namespace lpmd;
 
@@ -37,47 +38,37 @@ void PairPotential::UpdateForces(Configuration& conf) {
   BasicParticleSet& atoms = conf.Atoms();
   const long int n = atoms.Size();
   energycache = 0.0;
-  double stress[3][3];
-  double etmp = 0.0e0, tmpvir = 0.0e0;
-  for (int i = 0; i < 3; ++i) {
-    for (int j = 0; j < 3; ++j)
-      stress[i][j] = 0.0e0;
-  }
   const double cutoff = GetCutoff();
+  // Some cells lazily cache Cartesian/fractional transforms. Initialize the
+  // cache before several neighbor queries access it concurrently.
+  conf.Cell().Fractional(Vector());
+  const int thread_count = detail::ForceThreadCount(n);
+  std::vector<detail::ForceAccumulator> partial;
+  partial.reserve(thread_count);
+  for (int thread = 0; thread < thread_count; ++thread)
+    partial.emplace_back(n);
 
 #ifdef _OPENMP
-#pragma omp parallel for reduction(+ : etmp, tmpvir)
+#pragma omp parallel num_threads(thread_count) if(thread_count > 1)
 #endif
-  for (long i = 0; i < n; ++i) {
-    NeighborList nlist;
-    conf.GetCellManager().BuildNeighborList(conf, i, nlist, false, cutoff);
-    for (long k = 0; k < nlist.Size(); ++k) {
-      AtomPair nn = nlist[k];
-      if (AppliesTo(atoms[i].Z(), nn.j->Z()) && nn.r2 < cutoff * cutoff) {
-        etmp += pairEnergy(sqrt(nn.r2));
-        Vector ff = pairForce(nn.rij);
+  {
+    RuntimeContextScope context(conf.Context());
+    auto& local = partial[detail::ForceThreadIndex()];
 #ifdef _OPENMP
-#pragma omp critical
+#pragma omp for schedule(static)
 #endif
-        atoms[i].Acceleration() += ff * (forcefactor / atoms[i].Mass());
-#ifdef _OPENMP
-#pragma omp critical
-#endif
-        nn.j->Acceleration() -= ff * (forcefactor / nn.j->Mass());
-        tmpvir -= Dot(nn.rij, ff);
-        for (int l = 0; l < 3; ++l) {
-          stress[0][l] += -(nn.rij)[0] * ff[l];
-          stress[1][l] += -(nn.rij)[1] * ff[l];
-          stress[2][l] += -(nn.rij)[2] * ff[l];
+    for (long i = 0; i < n; ++i) {
+      NeighborList nlist;
+      conf.GetCellManager().BuildNeighborList(conf, i, nlist, false, cutoff);
+      for (long k = 0; k < nlist.Size(); ++k) {
+        const AtomPair& nn = nlist[k];
+        if (AppliesTo(atoms[i].Z(), nn.j->Z()) && nn.r2 < cutoff * cutoff) {
+          local.energy += pairEnergy(sqrt(nn.r2));
+          local.AddPair(i, nn.j_index, nn.rij, pairForce(nn.rij), forcefactor,
+                        atoms[i].Mass(), nn.j->Mass());
         }
       }
     }
   }
-  double& config_virial = conf.Virial();
-  energycache += etmp;
-  config_virial += tmpvir;
-  Matrix& config_stress = conf.StressTensor();
-  for (int p = 0; p < 3; p++)
-    for (int q = 0; q < 3; q++)
-      config_stress.Set(q, p, config_stress.Get(q, p) + stress[q][p]);
+  detail::MergeForces(conf, partial, energycache);
 }

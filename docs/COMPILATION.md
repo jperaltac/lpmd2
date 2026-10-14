@@ -38,6 +38,29 @@ sudo apt-get update
 sudo apt-get install povray imagemagick ffmpeg
 ```
 
+## OpenMP build and shock-wave example
+
+OpenMP is optional and disabled by default. Enable it explicitly to compile
+the core pair and metallic force loops with the compiler's OpenMP runtime:
+
+```bash
+cmake -S . -B build-openmp -DCMAKE_BUILD_TYPE=Release \
+  -DLPMD_ENABLE_OPENMP=ON -DLPMD_ENABLE_TESTS=ON
+cmake --build build-openmp --parallel 4
+ctest --test-dir build-openmp --output-on-failure
+```
+
+CMake must report `Found OpenMP_CXX`; configuration fails if support is missing.
+No manual compiler or linker flags are needed. OpenMP flags apply to the core;
+legacy parallel directives in plugin-only implementations remain disabled.
+The tests include numerical force, energy, virial and stress comparisons for
+the parallel accumulation.
+
+`--parallel 4` controls compilation jobs. Set `OMP_NUM_THREADS=4` separately
+for simulation threads. See the [shock-wave guide](../lpmd/examples/shock-wave/README.md)
+for a quick check, the full example, output analysis and reproducible timing
+comparisons using 1, 2 and 4 threads.
+
 ## Installation verification
 
 To verify installation without writing to system directories, configure a

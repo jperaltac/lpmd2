@@ -8,6 +8,7 @@
 #include <lpmd/cellmanager.h>
 #include <lpmd/configuration.h>
 #include <lpmd/plugin.h>
+#include <atomic>
 
 using namespace lpmd;
 
@@ -29,7 +30,7 @@ private:
   int nx, ny, nz;
   int* subcell;
   long cells_inside;
-  double nwin, nfail;
+  std::atomic<unsigned long> nwin, nfail;
   long* atomlist;
   bool mode;
 };

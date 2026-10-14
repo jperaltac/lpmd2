@@ -101,6 +101,16 @@ target_include_directories(lpmd_core
 
 target_compile_features(lpmd_core PUBLIC cxx_std_17)
 
+set(LPMD_PKGCONFIG_OPENMP_LIBS "")
+if(LPMD_ENABLE_OPENMP)
+    # Keep unreviewed legacy plugin pragmas disabled. The core contains the
+    # parallel force loops; static consumers still inherit their link runtime.
+    target_link_libraries(lpmd_core PRIVATE OpenMP::OpenMP_CXX)
+    foreach(openmp_library IN LISTS OpenMP_CXX_LIBRARIES)
+        string(APPEND LPMD_PKGCONFIG_OPENMP_LIBS " ${openmp_library}")
+    endforeach()
+endif()
+
 if(UNIX AND NOT APPLE)
     target_link_libraries(lpmd_core PRIVATE dl)
 endif()

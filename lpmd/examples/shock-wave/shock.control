@@ -1,0 +1,54 @@
+# Compresion por choque de dos mitades de un cristal FCC frio de Ar.
+# Unidades LPMD: angstrom, femtosegundo, eV; velocidad en angstrom/fs.
+# 6 x 6 x 48 x 4 = 6912 atomos, parametro de red a = 5.4 angstrom.
+cell vector 32.4 0 0 0 32.4 0 0 0 259.2
+periodic true true true
+input crystal3d type=fcc symbol=Ar nx=6 ny=6 nz=48
+
+# dt = 0.5 fs: 4000 pasos son 2 ps de tiempo fisico.
+steps 4000
+set lastconfig shock-final.dump
+output xyz file=shock.xyz level=1 precout=10 each=100
+monitor step,potential-energy,kinetic-energy,total-energy,temperature,pressure,szz start=0 end=-1 each=100 output=shock-monitor.dat
+
+use lennardjones
+    sigma 3.41
+    epsilon 0.0103408
+    cutoff 8.5
+enduse
+
+use velocityverlet
+    dt 0.5
+enduse
+
+# Subceldas de 10.8 angstrom > cutoff; al menos 3 en cada direccion.
+use linkedcell
+    cutoff 8.5
+    nx 3
+    ny 3
+    nz 24
+    mode noauto
+enduse
+
+cellmanager linkedcell
+potential lennardjones Ar Ar
+integrator velocityverlet
+
+# Estado inicial determinista, sin termostato durante el choque.
+# Primero toda la celda viaja hacia -z; luego la mitad inferior hacia +z.
+prepare setvelocity velocity=<0,0,-0.004>
+use setvelocity as toward_positive_z
+    velocity <0,0,0.004>
+enduse
+
+# Esta opcion ejecuta los modificadores de paso 0 antes de integrar.
+# No hay filtros destructivos en este ejemplo.
+set filter-at-end true
+# El corte esta entre los planos FCC z=129.6 y z=132.3: 3456 atomos por mitad.
+apply toward_positive_z start=0 end=0 each=1 over box x=all y=all z=0-130.95
+
+# Las velocidades iniciales son +/-400 m/s. La convergencia cerca del centro
+# produce dos frentes de compresion; en el borde periodico aparece una descarga.
+# Analizar los perfiles antes de que los frentes interactuen con la descarga.
+# La temperatura global del monitor incluye el movimiento colectivo inicial.
+# szz es la contribucion configuracional global del esfuerzo, en MPa.

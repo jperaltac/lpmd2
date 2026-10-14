@@ -1,4 +1,7 @@
 /build/
+/build-openmp/
+/build-serial/
+/runs/
 /.vs/
 /.vscode/
 .idea/

@@ -7,5 +7,5 @@ Name: liblpmd
 Description: An object-oriented, modular Molecular Dynamics library
 Version: @PROJECT_VERSION@
 Libs: -L${libdir} -llpmd
-Libs.private: -ldl -lm
+Libs.private: -ldl -lm@LPMD_PKGCONFIG_OPENMP_LIBS@
 Cflags: -I${includedir}

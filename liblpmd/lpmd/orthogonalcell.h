@@ -19,7 +19,7 @@ namespace lpmd {
 
 class OrthogonalCell : public BasicCell {
 public:
-  OrthogonalCell() {
+  OrthogonalCell() : mustupdate(false) {
     v[0] = e1;
     v[1] = e2;
     v[2] = e3;
@@ -29,7 +29,7 @@ public:
     }
   }
 
-  OrthogonalCell(const OrthogonalCell& c) {
+  OrthogonalCell(const OrthogonalCell& c) : mustupdate(false) {
     for (int q = 0; q < 3; ++q) {
       v[q] = c[q];
       modv[q] = v[q][q];
@@ -37,7 +37,7 @@ public:
     }
   }
 
-  OrthogonalCell(const double a, const double b, const double c) {
+  OrthogonalCell(const double a, const double b, const double c) : mustupdate(false) {
     v[0] = a * e1;
     v[1] = b * e2;
     v[2] = c * e3;

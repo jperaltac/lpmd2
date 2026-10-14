@@ -81,6 +81,19 @@ cmake --build build-debug
 For a focused compilation checklist and expected artifacts, see
 [`docs/COMPILATION.md`](docs/COMPILATION.md).
 
+To enable OpenMP for the core pair and metallic force calculations:
+
+```bash
+cmake -S . -B build-openmp -DCMAKE_BUILD_TYPE=Release -DLPMD_ENABLE_OPENMP=ON
+cmake --build build-openmp --parallel 4
+```
+
+Set `OMP_NUM_THREADS` when running the simulation. The build's `--parallel`
+option controls compilation jobs independently. OpenMP is off by default;
+enabling it requires a compiler with OpenMP support. A headless shock-wave
+example, Spanish build/run instructions, spatial-profile export, and a timing
+comparison are available in [`lpmd/examples/shock-wave/`](lpmd/examples/shock-wave/README.md).
+
 ## Run a quick smoke test
 
 After building, run the smallest headless example from a scratch directory so

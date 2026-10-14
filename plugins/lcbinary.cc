@@ -31,12 +31,14 @@ LCBinary::LCBinary(std::string args) : Plugin("lcbinary", "1.0") {
   //
   atomlist = 0;
   subcell = 0;
-  nwin = nfail = 0.0;
+  nwin = nfail = 0;
 }
 
 LCBinary::~LCBinary() {
-  if (nwin + nfail > 0.0)
-    DebugStream() << "-> lcbinary efficiency: " << 100.0 * nwin / (nwin + nfail) << "%\n";
+  const auto accepted = nwin.load();
+  const auto rejected = nfail.load();
+  if (accepted + rejected > 0)
+    DebugStream() << "-> lcbinary efficiency: " << 100.0 * accepted / (accepted + rejected) << "%\n";
   delete[] atomlist;
   delete[] subcell;
 }
@@ -300,9 +302,9 @@ void LCBinary::BuildNeighborList(Configuration& conf, long i, NeighborList& nlis
     nn.j_index = z;
     if (nn.r2 < rcut * rcut) {
       nlist.Append(nn);
-      nwin += 1.0;
+      nwin.fetch_add(1, std::memory_order_relaxed);
     } else {
-      nfail += 1.0;
+      nfail.fetch_add(1, std::memory_order_relaxed);
     }
   }
 }
