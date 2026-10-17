@@ -1,0 +1,228 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-tabla,es-nodecimaldot]{babel}
+\usepackage{lmodern}
+\usepackage[margin=1.7cm,headheight=21pt,headsep=9pt,footskip=20pt]{geometry}
+\usepackage{xcolor,amsmath,booktabs,tabularx,enumitem,listings,fancyhdr,microtype}
+\usepackage{upquote}
+\usepackage{hyperref}
+
+\definecolor{azul}{HTML}{174A73}
+\definecolor{fondo}{HTML}{F0F5F9}
+\definecolor{verde}{HTML}{236751}
+\renewcommand{\familydefault}{\sfdefault}
+\DisableLigatures{encoding=T1,family=lmtt}
+\hypersetup{colorlinks=true,urlcolor=azul,linkcolor=azul,
+  pdftitle={Ondas de choque con OpenMP: guía de clase},pdfauthor={LPMD2}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setlist[enumerate]{leftmargin=*,itemsep=5pt,topsep=4pt}
+\setlist[itemize]{leftmargin=*,itemsep=2pt,topsep=3pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{azul}\textbf{LPMD2}\quad Dinámica molecular}
+\fancyhead[R]{\small Guía de clase}
+\fancyfoot[L]{\footnotesize Ondas de choque y cómputo paralelo}
+\fancyfoot[R]{\footnotesize\thepage\,/\,3}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{azul!40}\leaders\hrule height \headrulewidth\hfill}}
+
+\lstdefinestyle{terminal}{language=bash,basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{fondo},frame=single,rulecolor=\color{azul!25},
+  framerule=0.3pt,breaklines=true,columns=fullflexible,keepspaces=true,
+  showstringspaces=false,upquote=true,aboveskip=5pt,belowskip=6pt,
+  xleftmargin=4pt,xrightmargin=4pt,framexleftmargin=4pt,framexrightmargin=4pt}
+\newcommand{\paso}[2]{\par\vspace{5pt}{\large\bfseries\color{azul}#1. #2}\par\vspace{1pt}}
+\newcommand{\nota}[1]{\par\smallskip\begingroup\setlength{\fboxsep}{7pt}%
+  \colorbox{fondo}{\parbox{\dimexpr\linewidth-14pt\relax}{\small #1}}\endgroup\par\smallskip}
+\newcommand{\archivo}[1]{\texttt{\detokenize{#1}}}
+
+\begin{document}
+
+{\LARGE\bfseries\color{azul}Ondas de choque con OpenMP}\par
+{\large Compilar, ejecutar, medir y analizar}\par
+\vspace{2pt}
+\textbf{Objetivo.} Observar la compresión de un cristal de argón y medir cuánto
+disminuye el tiempo de ejecución al usar varios hilos. Trabaja en parejas;
+registra el procesador, los núcleos disponibles y los resultados obtenidos.
+
+\paso{1}{Preparar y compilar}
+Se requiere Linux, CMake $\geq 3.16$, C++17, OpenMP y zlib. Para los gráficos
+usaremos Python 3 y Matplotlib. En Debian/Ubuntu, si faltan dependencias:
+\begin{lstlisting}[style=terminal]
+sudo apt-get update
+sudo apt-get install build-essential cmake zlib1g-dev \
+  python3 python3-matplotlib
+\end{lstlisting}
+Abre una terminal \textbf{en la raíz del repositorio lpmd2}. Mantén esa misma
+terminal durante la práctica: las variables siguientes se usarán en las tres páginas.
+\begin{lstlisting}[style=terminal]
+repo="$PWD"
+ejemplo="$repo/lpmd/examples/shock-wave"
+cmake -S "$repo" -B "$repo/build-openmp" \
+  -DCMAKE_BUILD_TYPE=Release -DLPMD_ENABLE_OPENMP=ON \
+  -DLPMD_ENABLE_TESTS=ON
+cmake --build "$repo/build-openmp" --parallel 4
+ctest --test-dir "$repo/build-openmp" --output-on-failure
+export LPMD_PATH="$repo/build-openmp/lib"
+export OMP_DYNAMIC=FALSE OMP_PROC_BIND=close OMP_PLACES=cores
+\end{lstlisting}
+La configuración debe indicar \archivo{Found OpenMP_CXX} y las pruebas deben
+pasar. Se trabaja directamente con los ejecutables compilados; no hace falta
+instalar LPMD en el sistema ni abrir una ventana gráfica.
+
+\nota{\textbf{Dos controles distintos:} \archivo{--parallel 4} usa hasta cuatro
+procesos para \textbf{compilar}. \archivo{OMP_NUM_THREADS=4} solicita cuatro hilos
+para \textbf{simular}. Si dispones de menos núcleos, ajusta los hilos a tu equipo.}
+
+\paso{2}{Verificar con una corrida corta}
+\begin{lstlisting}[style=terminal]
+mkdir -p "$repo/runs/clase-shock/smoke"
+cd "$repo/runs/clase-shock/smoke"
+OMP_NUM_THREADS=4 OMP_DISPLAY_ENV=TRUE \
+  "$repo/build-openmp/bin/lpmd" "$ejemplo/smoke.control" \
+  > run.log 2>&1
+grep -E 'OMP_NUM_THREADS|SIMULATION FINISHED' run.log
+\end{lstlisting}
+Comprueba el número de hilos solicitado y \archivo{SIMULATION FINISHED}.
+Se generan \archivo{smoke.xyz}, \archivo{smoke-monitor.dat} y
+\archivo{smoke-final.dump}: 1152 átomos durante 100 pasos, equivalentes a 50 fs.
+Esta corrida verifica el programa; todavía no desarrolla el frente de compresión.
+
+\newpage
+{\Large\bfseries\color{azul}La corrida y la comparación de tiempos}\par
+
+\paso{3}{Simular la compresión}
+El control \archivo{shock.control} crea dos mitades de un cristal FCC frío de
+Ar. La mitad inferior viaja hacia $+z$ y la superior hacia $-z$: se encuentran
+cerca del centro y generan frentes de compresión.
+
+\begin{center}\small
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+Sistema & 6912 átomos; celda de $32.4\times32.4\times259.2$ \AA;
+           parámetro de red $a=5.4$ \AA. \\
+Interacciones & Lennard-Jones; $\sigma=3.41$ \AA,
+                $\epsilon=0.0103408$ eV y corte de $8.5$ \AA. \\
+Movimiento & Velocidades iniciales de $\pm0.004$ \AA/fs ($\pm400$ m/s);
+             contornos periódicos en las tres direcciones. \\
+Integración & Velocity Verlet; $\Delta t=0.5$ fs y 4000 pasos. \\
+\bottomrule
+\end{tabularx}\end{center}
+
+\begin{lstlisting}[style=terminal]
+mkdir -p "$repo/runs/clase-shock/choque"
+cd "$repo/runs/clase-shock/choque"
+OMP_NUM_THREADS=4 \
+  "$repo/build-openmp/bin/lpmd" "$ejemplo/shock.control" \
+  > run.log 2>&1
+grep 'SIMULATION FINISHED' run.log
+\end{lstlisting}
+\archivo{shock.xyz} contiene 40 configuraciones, guardadas cada 100 pasos:
+desde 50 fs hasta 2000 fs. \archivo{shock-monitor.dat} contiene, en orden,
+paso, energía potencial, cinética y total (eV), temperatura (K), presión y
+esfuerzo configuracional $s_{zz}$ (MPa).
+
+\nota{\textbf{Tiempo físico:} $4000\times0.5\ \mathrm{fs}=2\ \mathrm{ps}$.
+\textbf{Tiempo de reloj:} lo que tarda el computador. Más hilos pueden reducir
+el segundo sin cambiar el primero. Conserva el paso temporal para esta comparación.}
+
+\paso{4}{Medir con 1, 2 y 4 hilos}
+El siguiente comando usa la misma geometría y condición inicial, pero solo
+200 pasos; repite cada caso tres veces y muestra la mediana del tiempo de reloj.
+\begin{lstlisting}[style=terminal]
+cd "$repo/runs/clase-shock"
+python3 "$ejemplo/benchmark.py" "$repo/build-openmp/bin/lpmd" \
+  --plugin-path "$repo/build-openmp/lib" \
+  --threads 1 2 4 --steps 200 --repeats 3 --no-trajectory \
+  --output tiempos
+\end{lstlisting}
+\archivo{--no-trajectory} omite XYZ en todos los casos, pero conserva monitor
+y estado final: se mide el proceso completo con menos escritura. Ejecuta las
+mediciones una tras otra, sin otras simulaciones, y usa solo los núcleos asignados.
+Los datos quedan en \archivo{tiempos/times.csv}; el control original no se modifica.
+
+Completa la tabla usando la mediana $\widetilde t_p$ de las tres repeticiones:
+\[
+ S_p=\frac{\widetilde t_1}{\widetilde t_p},\qquad
+ E_p=100\,\frac{S_p}{p}\quad\text{(eficiencia en \%)}.
+\]
+\begin{center}\small
+\begin{tabular}{@{}cccc@{}}
+\toprule
+Hilos $p$ & Mediana $\widetilde t_p$ (s) & Aceleración $S_p$ & Eficiencia $E_p$ (\%) \\
+\midrule
+1 & \rule{1.8cm}{0.3pt} & 1.00 & 100 \\
+2 & \rule{1.8cm}{0.3pt} & \rule{1.4cm}{0.3pt} & \rule{1.4cm}{0.3pt} \\
+4 & \rule{1.8cm}{0.3pt} & \rule{1.4cm}{0.3pt} & \rule{1.4cm}{0.3pt} \\
+\bottomrule
+\end{tabular}\end{center}
+
+\newpage
+{\Large\bfseries\color{azul}Gráficos y análisis de los resultados}\par
+
+\paso{5}{Construir los perfiles y graficar}
+Vuelve a la carpeta de la corrida completa. Estos comandos generan el CSV de
+perfiles y dos figuras PNG, sin necesidad de abrir una interfaz gráfica.
+\begin{lstlisting}[style=terminal]
+cd "$repo/runs/clase-shock/choque"
+python3 "$ejemplo/profiles.py" shock.xyz --output perfiles.csv
+python3 "$ejemplo/plot_results.py" perfiles.csv \
+  --times ../tiempos/times.csv
+\end{lstlisting}
+\begin{itemize}
+  \item \archivo{shock-profiles.png}: densidad relativa $n/n_0$ y velocidad
+        media longitudinal $\langle v_z\rangle$ frente a $z$, a $0.5$, $1$ y $2$ ps.
+  \item \archivo{shock-speedup.png}: aceleración medida frente a hilos
+        solicitados y recta ideal $S_p=p$.
+\end{itemize}
+Los perfiles agrupan los átomos en 24 franjas de 10.8 \AA. La densidad de
+referencia y la conversión temporal son:
+\[
+ n_0=\frac{4}{a^3}=\frac{4}{(5.4\ \text{\AA})^3}
+     \simeq0.02540\ \text{\AA}^{-3},
+ \qquad 1000\ \mathrm{fs}=1\ \mathrm{ps}.
+\]
+En el CSV, \archivo{time_fs} está en fs, \archivo{z_angstrom} en \AA,
+\archivo{number_density_A^-3} en \AA$^{-3}$ y \archivo{mean_vz_m_s} en m/s.
+La primera configuración corresponde a 50 fs, no a la condición inicial.
+Una franja sin átomos tiene densidad cero y velocidad media vacía.
+
+\nota{\textbf{Para repetir:} usa un directorio de trabajo nuevo. El simulador
+reemplaza sus salidas; los scripts protegen los CSV, directorios de medición y
+PNG existentes. Para guardar otras figuras, añade
+\archivo{--output-dir figuras-2} al comando de gráficos.}
+
+\paso{6}{Responder y discutir}
+\begin{enumerate}
+  \item \textbf{Compresión.} Identifica la zona central donde $n/n_0>1$.
+        ¿Cómo cambia su extensión entre $0.5$ y $2$ ps? Compara la velocidad
+        media dentro de esa zona con las velocidades de las regiones aún sin comprimir.
+  \item \textbf{Propagación.} Sigue el borde derecho de la zona comprimida
+        entre $1$ y $2$ ps. Usa como criterio aproximado $n/n_0>1.1$ en las
+        franjas contiguas al centro y estima
+        $v_f\simeq\Delta z/\Delta t$.
+        Recuerda: $1\ \text{\AA}/\mathrm{ps}=100\ \mathrm{m/s}$.
+        ¿Cuánto limita la estimación el ancho de una franja?
+  \item \textbf{Rendimiento.} ¿Cuánto se redujo el tiempo con cuatro hilos?
+        Calcula $S_4$ y $E_4$. Explica dos razones por las que la aceleración
+        puede ser menor que cuatro: trabajo secuencial, sincronización,
+        memoria o carga del equipo. Si $S_p<1$, ¿qué significa?
+  \item \textbf{Interpretación física.} El cristal parte sin velocidades
+        térmicas aleatorias, pero su temperatura global no es cero.
+        ¿Qué aporta el movimiento colectivo? ¿Por qué la temperatura del
+        monitor no basta para medir el calentamiento local por el choque?
+\end{enumerate}
+
+\textbf{Alcance del modelo.} Es una compresión transitoria, sin termostato.
+La unión periódica de los extremos genera una descarga: distingue ese efecto
+del frente central. El cristal frío presenta oscilaciones entre planos atómicos.
+Además, $s_{zz}$ solo incluye interacciones y la temperatura global incluye flujo;
+el corte del potencial puede introducir cambios en la energía total.
+
+\nota{\textbf{Entrega breve:} las dos figuras, la tabla de tiempos completada
+y respuestas de pocas líneas. Indica procesador, núcleos disponibles, hilos,
+pasos y repeticiones para que otra pareja pueda reproducir la medición.}
+
+\end{document}

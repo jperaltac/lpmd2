@@ -5,11 +5,28 @@ FCC de argón se mueven una contra otra. La condición inicial es determinista,
 sin velocidades térmicas aleatorias, para poder comparar ejecuciones con
 distintos números de hilos. No requiere pantalla ni archivos de entrada externos.
 
+## Guía para una clase
+
+La [guía de estudiantes en PDF](guia-clase.pdf) resume la práctica en tres páginas:
+compilación y verificación, corrida y comparación de tiempos, gráficos y preguntas
+de análisis. Su [fuente LaTeX](guia-clase.tex) es editable y no requiere imágenes
+externas. El nuevo graficador `plot_results.py` necesita Matplotlib; en
+Debian/Ubuntu se instala con `sudo apt-get install python3-matplotlib`.
+
+Para recompilar el PDF desde este directorio con LaTeX instalado:
+
+```bash
+mkdir -p /tmp/lpmd2-guia-clase
+latexmk -pdf -interaction=nonstopmode -halt-on-error \
+  -outdir=/tmp/lpmd2-guia-clase guia-clase.tex
+cp /tmp/lpmd2-guia-clase/guia-clase.pdf .
+```
+
 ## Compilar en Linux
 
 Se necesita CMake >= 3.16, un compilador C++17 con OpenMP y los archivos de
-desarrollo de zlib. Con GCC, el soporte OpenMP utiliza `libgomp`. Python 3 solo
-es necesario para los scripts de perfiles y medición, y para compilar las pruebas.
+desarrollo de zlib. Con GCC, el soporte OpenMP utiliza `libgomp`. Python 3 es
+necesario para los scripts de perfiles, medición y gráficos, y para compilar las pruebas.
 En Debian/Ubuntu, los requisitos básicos se instalan así:
 
 ```bash
@@ -124,6 +141,16 @@ El CSV contiene tiempo, centro de cada franja, número de átomos, densidad
 numérica en Å⁻³ y velocidad media longitudinal en m/s. Agrupa 24 franjas de
 10.8 Å. Una franja vacía tiene densidad cero y velocidad media en blanco.
 El destino CSV debe ser nuevo; el script evita reemplazar resultados anteriores.
+Para generar las figuras de densidad relativa y velocidad media:
+
+```bash
+python3 "$repo/lpmd/examples/shock-wave/plot_results.py" profiles.csv
+```
+
+Se escribe `shock-profiles.png`, con curvas a 0.5, 1 y 2 ps. El graficador usa
+Matplotlib sin abrir ventanas. Para agregar la figura de aceleración, pasa
+`--times /ruta/al/benchmark/times.csv`; se genera también `shock-speedup.png`.
+Usa `--output-dir figuras-nuevas` si ya existen figuras y deseas conservarlas.
 Para analizar la verificación corta:
 
 ```bash
@@ -188,8 +215,9 @@ python3 "$repo/lpmd/examples/shock-wave/benchmark.py" \
 
 `--no-trajectory` elimina la misma salida XYZ de todos los controles temporales;
 conserva el monitor y el estado final. El control original queda intacto.
-Los directorios de medición deben ser nuevos. Los scripts usan únicamente la
-biblioteca estándar de Python. La medición exige que el registro contenga el
+Los directorios de medición deben ser nuevos. `benchmark.py` y `profiles.py`
+usan únicamente la biblioteca estándar de Python; `plot_results.py` requiere
+Matplotlib. La medición exige que el registro contenga el
 entorno OpenMP solicitado; así detecta si se pasó una compilación secuencial.
 
 La aceleración informada es `mediana_1_hilo / mediana_N_hilos`. Un valor menor
