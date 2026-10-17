@@ -1,115 +1,113 @@
 # Ondas de choque con OpenMP
 
-Este ejemplo muestra la compresión que aparece cuando dos mitades de un cristal
-FCC de argón se mueven una contra otra. La condición inicial es determinista,
-sin velocidades térmicas aleatorias, para poder comparar ejecuciones con
-distintos números de hilos. No requiere pantalla ni archivos de entrada externos.
+Dos mitades de un cristal FCC de argón se encuentran y producen compresión
+central. La condición inicial es determinista, sin velocidades térmicas
+aleatorias, para comparar ejecuciones con distintos números de hilos.
 
-## Guía para una clase
+## Guía de clase
 
-La [guía de estudiantes en PDF](guia-clase.pdf) resume la práctica en tres páginas:
-compilación y verificación, corrida y comparación de tiempos, gráficos y preguntas
-de análisis. Su [fuente LaTeX](guia-clase.tex) es editable y no requiere imágenes
-externas. El nuevo graficador `plot_results.py` necesita Matplotlib; en
-Debian/Ubuntu se instala con `sudo apt-get install python3-matplotlib`.
+La [guía en PDF](guia-clase.pdf) tiene cinco páginas con esquemas, perfiles
+comentados, instrucciones y espacios para responder. Su [fuente LaTeX](guia-clase.tex)
+utiliza las imágenes de `figuras/`.
 
-Para recompilar el PDF desde este directorio con LaTeX instalado:
+La práctica parte de una instalación de LPMD hecha con CMake y `sudo`. Cada
+estudiante conserva sus rutas. Se comprueba OpenMP en la instalación activa;
+si se descargaron cambios del código, se recompila y reinstala para incorporarlos,
+aunque OpenMP ya estuviera activo. Las simulaciones y las mediciones se
+hacen directamente con `lpmd`. Python se usa después para analizar y graficar.
+
+Antes de buscar el ejemplo, abre una terminal en la raíz del repositorio que
+clonaste y actualiza tu copia:
 
 ```bash
-mkdir -p /tmp/lpmd2-guia-clase
-latexmk -pdf -interaction=nonstopmode -halt-on-error \
-  -outdir=/tmp/lpmd2-guia-clase guia-clase.tex
-cp /tmp/lpmd2-guia-clase/guia-clase.pdf .
+git pull --ff-only
 ```
 
-## Compilar en Linux
+Esto descarga los cambios de las fuentes y los ejemplos. No actualiza por sí
+solo el ejecutable instalado: para eso se recompila y reinstala, como explica
+el paso 2. Si Git informa cambios locales incompatibles o ramas divergentes,
+revisa esos cambios con el docente antes de continuar.
 
+Después de actualizar, copia este directorio a una carpeta de trabajo usando el administrador de
+archivos. Dentro de la copia, crea `prueba`, `choque` y `tiempos`. Mantén
+`profiles.py` y `plot_results.py` en la carpeta que contiene esas tres carpetas.
+
+## 1. Comprobar el LPMD instalado
+
+Copia `smoke.control` a `prueba` y abre una terminal allí:
+
+```bash
+command -v lpmd
+OMP_NUM_THREADS=2 OMP_DYNAMIC=FALSE OMP_DISPLAY_ENV=TRUE \
+  lpmd smoke.control > run.log 2>&1
+```
+
+El primer comando muestra la ruta del ejecutable activo. Abre `run.log` con un
+editor y busca `SIMULATION FINISHED`, `OPENMP DISPLAY ENVIRONMENT`, `_OPENMP`
+y `OMP_NUM_THREADS = '2'`. Los primeros indicadores confirman que terminó la
+prueba y se cargó OpenMP; el último indica los hilos solicitados. La aceleración
+se mide después. `lpmd --help` o las bibliotecas del ejecutable principal no
+bastan para comprobar OpenMP: el código de fuerzas se carga mediante plugins.
+
+Esta prueba tiene 1152 átomos y 100 pasos de 0.5 fs. Produce `smoke.xyz`,
+`smoke-monitor.dat` y `smoke-final.dump`; no dura lo suficiente para analizar
+un frente desarrollado. Si termina sin indicadores de OpenMP, sigue el paso 2.
+Si hay errores de simulación, resuélvelos antes de interpretar el resultado.
+
+## 2. Recompilar e instalar el código actualizado
+
+Haz este paso después de descargar cambios del código y también si la prueba
+no muestra soporte OpenMP. Descargar las fuentes no actualiza el ejecutable ni
+los plugins ya instalados. Si ya reinstalaste ese código y la prueba confirma
+OpenMP, puedes pasar al paso 3.
+
+Localiza el directorio donde compilaste este código de lpmd2: debe contener
+su `CMakeCache.txt`, y las fuentes originales deben seguir en su ubicación.
+El nombre puede ser `build` u otro. En ese archivo comprueba que
+`CMAKE_INSTALL_PREFIX` corresponde a la instalación que mostró `command -v lpmd`;
+por ejemplo, `/usr/local` para `/usr/local/bin/lpmd`.
+
+Abre una terminal en ese directorio de compilación:
+
+```bash
+cmake . -DLPMD_ENABLE_OPENMP=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build . --parallel 4
+sudo cmake --install .
+```
+
+CMake reutiliza las fuentes, el compilador y el prefijo registrados en el caché.
 Se necesita CMake >= 3.16, un compilador C++17 con OpenMP y los archivos de
-desarrollo de zlib. Con GCC, el soporte OpenMP utiliza `libgomp`. Python 3 es
-necesario para los scripts de perfiles, medición y gráficos, y para compilar las pruebas.
-En Debian/Ubuntu, los requisitos básicos se instalan así:
+desarrollo de zlib. Con GCC, el runtime es `libgomp`. Si falta soporte OpenMP,
+la configuración con `ON` falla; no hace falta añadir `-fopenmp` manualmente.
+OpenGL/GLUT es opcional para esta práctica.
+
+`--parallel 4` reparte la compilación entre procesos. `OMP_NUM_THREADS=4`
+controla separadamente los hilos de la simulación. OpenMP está desactivado por
+defecto y esa variable no paraleliza una instalación secuencial.
+
+Vuelve a `prueba` y repite el paso 1. La reinstalación debe actualizar la copia
+que realmente ejecutas. Si hay varias, usa la ruta completa de la recién
+instalada en lugar de `lpmd` durante toda la práctica. Las líneas
+`Plugin file found at` del registro permiten comprobar el origen de los módulos;
+un `LPMD_PATH` de una sesión anterior puede seleccionar plugins antiguos.
+Si no conservas el caché o las rutas no coinciden, revisa con el docente la
+[guía de instalación](../../../docs/installation-guide/guia-instalacion.pdf).
+
+## 3. Ejecutar el choque
+
+Copia `shock.control` a `choque` y abre una terminal allí:
 
 ```bash
-sudo apt-get update
-sudo apt-get install build-essential cmake zlib1g-dev python3
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE lpmd shock.control > run.log 2>&1
 ```
 
-Desde la raíz del repositorio:
-
-```bash
-cmake -S . -B build-openmp \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DLPMD_ENABLE_OPENMP=ON \
-  -DLPMD_ENABLE_TESTS=ON
-cmake --build build-openmp --parallel 4
-ctest --test-dir build-openmp --output-on-failure
-```
-
-La configuración debe informar `Found OpenMP_CXX`. Si el compilador no soporta
-OpenMP, la opción `ON` produce un error de configuración. No hace falta añadir
-`-fopenmp` manualmente: CMake proporciona las opciones de compilación y enlace.
-OpenGL/GLUT son opcionales; este ejemplo funciona con la compilación sin gráficos.
-
-`--parallel 4` usa hasta cuatro procesos **para compilar**. Para que la
-**simulación** use cuatro hilos se establece `OMP_NUM_THREADS=4` al ejecutarla.
-Son controles independientes. OpenMP paraleliza los cálculos de fuerzas del
-núcleo; la integración, los analizadores y la escritura siguen teniendo
-trabajo secuencial. Las directivas antiguas exclusivas de plugins no se activan
-con esta opción.
-
-Para comparar con una compilación completamente secuencial:
-
-```bash
-cmake -S . -B build-serial -DCMAKE_BUILD_TYPE=Release \
-  -DLPMD_ENABLE_OPENMP=OFF
-cmake --build build-serial --parallel 4
-```
-
-OpenMP está desactivado por defecto. Con el ejecutable compilado sin OpenMP,
-`OMP_NUM_THREADS` no paraleliza el cálculo.
-
-## Ejecutar primero la verificación corta
-
-Estos comandos se inician en la raíz del repositorio. Conserva `repo` como ruta
-absoluta porque las salidas se escriben en el directorio actual:
-
-```bash
-repo="$PWD"
-mkdir -p "$repo/runs/shock-smoke"
-cd "$repo/runs/shock-smoke"
-OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE OMP_PROC_BIND=close OMP_PLACES=cores \
-  OMP_DISPLAY_ENV=TRUE LPMD_PATH="$repo/build-openmp/lib" \
-  "$repo/build-openmp/bin/lpmd" \
-  "$repo/lpmd/examples/shock-wave/smoke.control" > run.log 2>&1
-```
-
-`run.log` debe mostrar `SIMULATION FINISHED` sin errores. El entorno OpenMP también
-aparece en ese archivo: comprueba `OMP_NUM_THREADS` y `OMP_DYNAMIC`. Esta
-verificación integra 100 pasos, con 1152 átomos, y produce `smoke.xyz`,
-`smoke-monitor.dat` y `smoke-final.dump`. Es una comprobación de funcionamiento;
-su duración física de 50 fs es demasiado corta para estudiar el frente desarrollado.
-
-Cada ejecución debe usar un directorio propio: lpmd reemplaza sus archivos de
-salida si se vuelve a lanzar en el mismo directorio.
-
-## Ejecutar el ejemplo de choque
-
-En la misma terminal, donde `repo` sigue definido:
-
-```bash
-mkdir -p "$repo/runs/shock-4threads"
-cd "$repo/runs/shock-4threads"
-OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE OMP_PROC_BIND=close OMP_PLACES=cores \
-  LPMD_PATH="$repo/build-openmp/lib" \
-  "$repo/build-openmp/bin/lpmd" \
-  "$repo/lpmd/examples/shock-wave/shock.control" > run.log 2>&1
-```
-
-Usa inicialmente 1, 2 o 4 hilos y evita exceder los núcleos asignados al proceso.
-En un equipo compartido o en un trabajo con planificador, cuenta los núcleos
-disponibles para ese trabajo. No ejecutes varias comparaciones a la vez.
+Usa 1, 2 o 4 hilos según los núcleos disponibles para tu trabajo. No ejecutes
+otras simulaciones al mismo tiempo. Confirma `SIMULATION FINISHED` al terminar.
+Las salidas se escriben en el directorio de trabajo; una nueva ejecución allí
+reemplaza los archivos, así que usa una carpeta nueva para conservar otra corrida.
 
 Parámetros de `shock.control`:
+
 
 | Parámetro | Valor |
 | --- | --- |
@@ -121,49 +119,68 @@ Parámetros de `shock.control`:
 | Vecinos | `linkedcell`, 3 × 3 × 24 subceldas de 10.8 Å |
 | Salidas | Cada 100 pasos (50 fs) |
 
-Una hora de ejecución es tiempo de reloj del computador. El tiempo físico del
-sistema es `steps × dt`: aquí 2 ps. Cambiar el número de hilos mantiene ese
-tiempo físico; aumentar `dt` cambia la resolución y exige verificar estabilidad
-y convergencia, por lo que no debe usarse como atajo para acelerar el caso.
 
-## Examinar la compresión
+Una hora frente al computador es tiempo de reloj. El tiempo físico del modelo
+es `steps × dt`: aquí 2 ps. Cambiar hilos conserva ese tiempo físico; aumentar
+`dt` cambia la resolución y exige comprobar estabilidad y convergencia.
 
-`shock.xyz` contiene 40 configuraciones con posición y velocidad de cada átomo:
-`Ar x y z vx vy vz`, en Å y Å/fs. La primera corresponde al paso 100, no al paso
-0. Se pueden exportar perfiles longitudinales sin instalar paquetes Python:
+## 4. Graficar los perfiles
+
+Desde `choque`, donde quedaron las salidas:
 
 ```bash
-python3 "$repo/lpmd/examples/shock-wave/profiles.py" shock.xyz \
-  --output profiles.csv
+python3 ../profiles.py shock.xyz --output perfiles.csv
+python3 ../plot_results.py perfiles.csv
 ```
 
-El CSV contiene tiempo, centro de cada franja, número de átomos, densidad
-numérica en Å⁻³ y velocidad media longitudinal en m/s. Agrupa 24 franjas de
-10.8 Å. Una franja vacía tiene densidad cero y velocidad media en blanco.
-El destino CSV debe ser nuevo; el script evita reemplazar resultados anteriores.
-Para generar las figuras de densidad relativa y velocidad media:
+Abre `shock-profiles.png` con el administrador de archivos. Muestra densidad
+relativa y velocidad media a 0.5, 1 y 2 ps. El exportador usa Python estándar;
+el graficador requiere Matplotlib, que en Debian/Ubuntu se instala con
+`sudo apt-get install python3-matplotlib`. Ninguno compila ni ejecuta LPMD.
+
+El XYZ contiene 40 configuraciones: `Ar x y z vx vy vz`, en Å y Å/fs,
+comenzando en el paso 100. `profiles.py` agrupa 24 franjas de 10.8 Å y exporta
+tiempo, centro de franja, número de átomos, densidad numérica en Å⁻³ y velocidad
+media en m/s. La densidad de referencia es `4 / 5.4³ ≈ 0.02540 Å⁻³`.
+Busca compresión y velocidad media más cercana a cero en el centro.
+Si cambias celda, `dt` o `each`, indica sus valores a `profiles.py`: XYZ no
+contiene esa información. El CSV y las figuras deben tener destinos nuevos;
+para otra figura puedes usar `--output-dir otra-carpeta`.
+
+## 5. Comparar tiempos manualmente
+
+`tiempos.control` conserva la geometría, las fuerzas, el paso temporal y las
+velocidades iniciales de `shock.control`, pero integra 200 pasos y omite XYZ.
+Es una medición breve del mismo sistema, con monitor y estado final en todos
+los casos. No se usa para estudiar la evolución completa a 2 ps.
+
+Dentro de `tiempos`, crea `1-hilo`, `2-hilos` y `4-hilos`, y copia el mismo
+`tiempos.control` en cada carpeta. Abre una terminal en cada una y ejecuta
+la línea correspondiente:
 
 ```bash
-python3 "$repo/lpmd/examples/shock-wave/plot_results.py" profiles.csv
+OMP_NUM_THREADS=1 OMP_DYNAMIC=FALSE lpmd tiempos.control > run.log 2>&1
+OMP_NUM_THREADS=2 OMP_DYNAMIC=FALSE lpmd tiempos.control > run.log 2>&1
+OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE lpmd tiempos.control > run.log 2>&1
 ```
 
-Se escribe `shock-profiles.png`, con curvas a 0.5, 1 y 2 ps. El graficador usa
-Matplotlib sin abrir ventanas. Para agregar la figura de aceleración, pasa
-`--times /ruta/al/benchmark/times.csv`; se genera también `shock-speedup.png`.
-Usa `--output-dir figuras-nuevas` si ya existen figuras y deseas conservarlas.
-Para analizar la verificación corta:
+Repite tres veces por número de hilos. Tras cada corrida, confirma el final,
+anota `Elapsed real time` y renombra `run.log` a `r1.log`, `r2.log` o `r3.log`
+con el administrador de archivos antes de repetir. El monitor y el estado
+final se reemplazan. Usa solo los números de hilos disponibles para tu trabajo.
 
-```bash
-python3 "$repo/lpmd/examples/shock-wave/profiles.py" smoke.xyz \
-  --cell 32.4 32.4 43.2 --bins 4 --each 20 --output smoke-profiles.csv
-```
+`Elapsed real time` mide el tiempo de reloj de la simulación y sus salidas,
+después de la preparación inicial. No incluye todo el arranque del proceso.
+`user` y `system` son tiempos de CPU y pueden sumar el trabajo de varios hilos.
+Ordena los tres tiempos y toma el del medio, la mediana. Calcula
+`S_p = mediana_1_hilo / mediana_p_hilos`; `S=2` significa la mitad de espera.
+OpenMP no garantiza una mejora proporcional al número de hilos.
 
-Grafica densidad y velocidad media frente a `z_angstrom` para varios valores de
-`time_fs`. La densidad inicial es `4 / 5.4³ ≈ 0.02540 Å⁻³`. Busca su aumento
-cerca del centro y la disminución de la velocidad media hacia cero en la zona
-comprimida; sigue cómo esa zona crece hacia ambos lados. El cristal frío produce
-oscilaciones de planos atómicos, por lo que conviene comparar varias franjas y
-tiempos en lugar de interpretar una sola franja como una densidad continua.
+Los datos y las [figuras de referencia](figuras/README.md) documentan una
+medición real y el método para regenerarlas. Los resultados dependen del
+procesador, carga, memoria y salidas del equipo.
+
+## Interpretación física
 
 `shock-monitor.dat` registra paso, energía potencial, cinética y total,
 temperatura, presión y `szz`. Las energías son del sistema completo, en eV;
@@ -188,66 +205,23 @@ Si cambias la celda, `dt` o `each`, pasa sus nuevos valores a `profiles.py`;
 XYZ no contiene esa información. El script está preparado para salidas que
 empiezan en el paso `each`, como estos controles.
 
-## Medir si OpenMP ahorra tiempo
+## Material para el docente
 
-El script ejecuta la misma geometría y condición inicial con 1, 2 y 4 hilos,
-repite cada medición tres veces y compara las medianas. Reduce el recorrido a
-1000 pasos para evitar esperar la simulación completa. Python mide el tiempo
-de reloj de todo el proceso; conserva los registros y `times.csv`:
-
-```bash
-cd "$repo/runs"
-python3 "$repo/lpmd/examples/shock-wave/benchmark.py" \
-  "$repo/build-openmp/bin/lpmd" \
-  --plugin-path "$repo/build-openmp/lib" \
-  --threads 1 2 4 --steps 1000 --repeats 3 --output benchmark-with-output
-```
-
-Para medir el cálculo con menos interferencia de la escritura de trayectorias:
-
-```bash
-python3 "$repo/lpmd/examples/shock-wave/benchmark.py" \
-  "$repo/build-openmp/bin/lpmd" \
-  --plugin-path "$repo/build-openmp/lib" \
-  --threads 1 2 4 --steps 1000 --repeats 3 --no-trajectory \
-  --output benchmark-without-trajectory
-```
-
-`--no-trajectory` elimina la misma salida XYZ de todos los controles temporales;
-conserva el monitor y el estado final. El control original queda intacto.
-Los directorios de medición deben ser nuevos. `benchmark.py` y `profiles.py`
-usan únicamente la biblioteca estándar de Python; `plot_results.py` requiere
-Matplotlib. La medición exige que el registro contenga el
-entorno OpenMP solicitado; así detecta si se pasó una compilación secuencial.
-
-La aceleración informada es `mediana_1_hilo / mediana_N_hilos`. Un valor menor
-que 1 significa que esa configuración fue más lenta. La prueba corta sirve
-para verificar funcionamiento; usa el sistema de 6912 átomos para medir.
-Los resultados dependen del procesador, carga del equipo, memoria y salidas.
-OpenMP no garantiza una reducción proporcional al número de hilos. También
-conviene reducir la frecuencia de salidas y evitar visualización en vivo en
-corridas largas, manteniendo las muestras necesarias para el análisis.
+`benchmark.py` sigue disponible para mediciones automatizadas fuera de la
+actividad manual. Mide el proceso completo, por lo que sus `wall_seconds` no
+son exactamente el mismo intervalo que `Elapsed real time`. La guía distingue
+ambas métricas y usa la segunda para la tabla y la figura de referencia.
 
 El cálculo paralelo acumula fuerzas y esfuerzos por hilo y luego los combina.
-Esto evita bloqueos por cada par de átomos y escrituras simultáneas en el tensor
-de esfuerzos. La suma puede cambiar sus últimos dígitos entre números de hilos;
-la regresión de fuerzas comprueba equivalencia numérica con tolerancias.
-Los buffers de aceleración requieren aproximadamente `24 × átomos × hilos`
-bytes de memoria adicional.
+El orden de suma puede cambiar los últimos dígitos. La regresión de fuerzas
+comprueba equivalencia numérica con tolerancias; los buffers de aceleración
+requieren aproximadamente `24 × átomos × hilos` bytes adicionales.
 
-### Medición de referencia
+Para recompilar la guía desde este directorio con LaTeX instalado:
 
-En un AMD Ryzen 5 5600U, GCC 14.2 y compilación `Release`, una comparación
-de 200 pasos con 6912 átomos, tres repeticiones y `--no-trajectory` dio:
-
-| Hilos solicitados | Mediana de tiempo de reloj | Aceleración frente a 1 hilo |
-| --- | --- | --- |
-| 1 | 18.057 s | 1.00× |
-| 2 | 10.191 s | 1.77× |
-| 4 | 6.537 s | 2.76× |
-
-Es una referencia local, no un tiempo esperado para otros equipos ni para la
-corrida completa. El ejemplo completo de 4000 pasos, con trayectoria XYZ,
-terminó en aproximadamente 136 s con cuatro hilos en ese equipo. Se verificaron
-sus 40 configuraciones y la conservación del número de átomos. La prueba corta
-coincidió numéricamente entre las compilaciones secuencial y OpenMP con 1 y 4 hilos.
+```bash
+mkdir -p /tmp/lpmd2-guia-clase
+latexmk -pdf -interaction=nonstopmode -halt-on-error \
+  -outdir=/tmp/lpmd2-guia-clase guia-clase.tex
+cp /tmp/lpmd2-guia-clase/guia-clase.pdf .
+```

@@ -17,7 +17,7 @@ SetVelocityModifier::SetVelocityModifier(std::string args) : Plugin("setvelocity
   DefineKeyword("start", "0");
   DefineKeyword("end", "-1");
   DefineKeyword("each", "1");
-  DefineKeyword("velocity");
+  DefineKeyword("velocity", "<0,0,0>");
   DefineKeyword("filterby", "none");
   // hasta aqui los valores por omision
   ProcessArguments(args);
