@@ -117,15 +117,20 @@ Busca la carpeta donde compilaste \textbf{este código de lpmd2}: puede llamarse
 \archivo{build} u otro nombre. Debe contener \archivo{CMakeCache.txt}.
 Ábrelo y comprueba que \archivo{CMAKE_INSTALL_PREFIX} corresponde a la instalación
 anotada arriba; por ejemplo, \archivo{/usr/local} para \archivo{/usr/local/bin/lpmd}.
+Estos comandos usan \archivo{Unix Makefiles}; comprueba el campo
+\archivo{CMAKE_GENERATOR} del mismo caché. Si usaste otro generador,
+consulta el README antes de continuar.
 
 Abre una terminal \textbf{en esa carpeta de compilación} y ejecuta, una línea a la vez:
 \begin{lstlisting}[style=terminal]
 cmake . -DLPMD_ENABLE_OPENMP=ON -DCMAKE_BUILD_TYPE=Release
-cmake --build . --parallel 4
+cmake --build . --target preinstall --parallel 4
 sudo cmake --install .
 \end{lstlisting}
 El punto significa \textit{esta carpeta}; se conservan las rutas registradas por
-CMake. La primera línea activa OpenMP, la segunda compila y la tercera reinstala.
+CMake. La primera línea activa OpenMP. La segunda compila y prepara la instalación,
+incluidas las copias \archivo{CMakeRelink.dir} cuando hacen falta; espera a que termine sin errores.
+La tercera reinstala los archivos preparados.
 \textbf{Compilar con \archivo{--parallel 4} y simular con cuatro hilos son decisiones distintas.}
 
 \begin{pista}{Vuelve a comprobar}

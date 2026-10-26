@@ -86,16 +86,19 @@ desarrollo de zlib. OpenGL/GLUT es opcional para los plugins gráficos.
 
 \sectiontitle{2. Compilar}
 
-Configura una compilación optimizada y construye todos los objetivos:
+Usa el generador \texttt{Unix Makefiles} y prepara una compilación optimizada
+para instalar:
 
 \begin{lstlisting}[style=terminal]
-cmake -S . -B build \
+cmake -S . -B build -G "Unix Makefiles" \
   -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j
+cmake --build build --target preinstall -j4
 \end{lstlisting}
 
 Los ejecutables quedan temporalmente en \texttt{build/bin} y los plugins en
 \texttt{build/lib}.
+\texttt{preinstall} también prepara las copias \texttt{CMakeRelink.dir}
+que algunas configuraciones necesitan al instalar. Espera a que termine sin errores.
 
 \sectiontitle{3. Instalar}
 
@@ -113,10 +116,10 @@ sudo cmake --install build
 No requiere \texttt{root}. El prefijo debe definirse al configurar:
 
 \begin{lstlisting}[style=terminal]
-cmake -S . -B build-user \
+cmake -S . -B build-user -G "Unix Makefiles" \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX="$HOME/.local"
-cmake --build build-user -j
+cmake --build build-user --target preinstall -j4
 cmake --install build-user
 \end{lstlisting}
 
@@ -186,8 +189,8 @@ head smoke.xyz
 
 \vfill
 \notice{\textbf{Consejo:} para actualizar la instalación después de modificar
-el código, repite \texttt{cmake --build build} y luego
-\texttt{sudo cmake --install build}.}
+el código, repite el comando con \texttt{--target preinstall} y luego instala.
+\texttt{cmake --install} copia los archivos preparados; no ejecuta ese objetivo.}
 
 \end{multicols}
 

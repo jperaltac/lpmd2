@@ -64,17 +64,38 @@ comparisons using 1, 2 and 4 threads.
 ## Installation verification
 
 To verify installation without writing to system directories, configure a
-temporary prefix and run the installed executable:
+temporary prefix with **Unix Makefiles**, prepare its installation binaries,
+and run the installed executable:
 
 ```bash
-cmake -S . -B build-install -DCMAKE_INSTALL_PREFIX=/tmp/lpmd2-install
-cmake --build build-install
+cmake -S . -B build-install -G "Unix Makefiles" \
+  -DCMAKE_INSTALL_PREFIX=/tmp/lpmd2-install
+cmake --build build-install --target preinstall --parallel 4
 cmake --install build-install
 /tmp/lpmd2-install/bin/lpmd /path/to/lpmd2/lpmd/examples/smoke.control
 ```
 
-For a normal system-wide install, use the default `/usr/local` prefix and run
-`sudo cmake --install build` after compilation.
+For a system-wide install from an existing Unix Makefiles build, use the
+configured prefix (normally `/usr/local`):
+
+```bash
+cmake --build build --target preinstall --parallel 4
+sudo cmake --install build
+```
+
+`cmake --install` invokes the installer directly; it does not build the
+installation relink files. With Unix Makefiles, a plugin that needs its
+runtime path changed for installation may have a separate binary under
+`CMakeRelink.dir`. Thus, even after a successful normal build, installation
+can report that `CMakeRelink.dir/<plugin>.so` is missing, for example
+`CMakeRelink.dir/addvelocity.so`. The `preinstall` step above creates the
+installation binaries before the installer copies them. Compilation and
+`preinstall` run as the current user; only the system installation uses `sudo`.
+
+For existing build directories, check `CMAKE_GENERATOR` in `CMakeCache.txt`.
+The `preinstall` target here belongs to Unix Makefiles; do not request it for
+Ninja or change an existing build directory's generator. The normal build
+commands in the earlier sections still apply when running from the build tree.
 
 ## Smoke example
 

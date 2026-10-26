@@ -69,13 +69,24 @@ por ejemplo, `/usr/local` para `/usr/local/bin/lpmd`.
 
 Abre una terminal en ese directorio de compilación:
 
+Estos comandos corresponden al generador `Unix Makefiles`; comprueba el campo
+`CMAKE_GENERATOR` del caché. `preinstall` es un objetivo de ese generador, no una
+opción universal de todos los generadores de CMake.
+
 ```bash
 cmake . -DLPMD_ENABLE_OPENMP=ON -DCMAKE_BUILD_TYPE=Release
-cmake --build . --parallel 4
+cmake --build . --target preinstall --parallel 4
 sudo cmake --install .
 ```
 
 CMake reutiliza las fuentes, el compilador y el prefijo registrados en el caché.
+El objetivo `preinstall` compila y prepara las bibliotecas para instalar. Algunas
+configuraciones deben volver a enlazarlas con las rutas de instalación; esas copias
+se generan en `CMakeFiles/CMakeRelink.dir`. `cmake --install` no ejecuta esa
+preparación. Por eso puede faltar `CMakeRelink.dir/addvelocity.so` aunque la
+compilación normal haya terminado: ejecuta `preinstall` antes de instalar.
+Continúa con `sudo cmake --install .` solo si ese paso termina sin errores.
+
 Se necesita CMake >= 3.16, un compilador C++17 con OpenMP y los archivos de
 desarrollo de zlib. Con GCC, el runtime es `libgomp`. Si falta soporte OpenMP,
 la configuración con `ON` falla; no hace falta añadir `-fopenmp` manualmente.
