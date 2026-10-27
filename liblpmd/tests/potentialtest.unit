@@ -1,0 +1,34 @@
+#include <lpmd/pairpotential.h>
+
+using namespace lpmd;
+
+class SpeciesPotential : public PairPotential {
+public:
+ double pairEnergy(const double&) const override { return 0.0; }
+ Vector pairForce(const Vector&) const override { return Vector(); }
+};
+
+@testsuite Potential species selection
+
+@test Equal atomic-number sums must not select unrelated pairs
+{
+ SpeciesPotential potential;
+ potential.SetValidSpecies(1, 8);
+ @assert potential.AppliesTo(1, 8)
+ @assert potential.AppliesTo(8, 1)
+ @assert !potential.AppliesTo(3, 6)
+ @assert !potential.AppliesTo(8, 8)
+ potential.SetValidSpecies(6, 6);
+ @assert potential.AppliesTo(6, 6)
+ @assert !potential.AppliesTo(4, 8)
+}
+@end
+
+@test Wildcard selects all species
+{
+ SpeciesPotential potential;
+ potential.SetValidSpecies(-1, -1);
+ @assert potential.AppliesTo(1, 8)
+ @assert potential.AppliesTo(6, 6)
+}
+@end

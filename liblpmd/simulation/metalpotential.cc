@@ -86,9 +86,9 @@ void MetalPotential::UpdateForces(Configuration& conf) {
   if (initial == true) {
     double sinv = 0.0e0;
     // mpd = atoms.Size()/conf.Cell().Volume();
+    NeighborList nlist;
     for (long i = 0; i < n; ++i) {
       double rhoi = 0.0e0;
-      NeighborList nlist;
       conf.GetCellManager().BuildNeighborList(conf, i, nlist, true, GetCutoff());
       for (long k = 0; k < nlist.Size(); ++k) {
         rhoi += rhoij(sqrt(nlist[k].r2));
@@ -120,12 +120,12 @@ void MetalPotential::UpdateForces(Configuration& conf) {
 #endif
   {
     RuntimeContextScope context(conf.Context());
+    NeighborList nlist;
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
     for (long i = 0; i < n; ++i) {
       double rhoi = 0.0e0;
-      NeighborList nlist;
       conf.GetCellManager().BuildNeighborList(conf, i, nlist, true, GetCutoff());
       for (long k = 0; k < nlist.Size(); ++k)
         rhoi += rhoij(sqrt(nlist[k].r2));
@@ -138,7 +138,6 @@ void MetalPotential::UpdateForces(Configuration& conf) {
 #pragma omp for schedule(static)
 #endif
     for (long i = 0; i < n; ++i) {
-      NeighborList nlist;
       conf.GetCellManager().BuildNeighborList(conf, i, nlist, false, GetCutoff());
       for (long k = 0; k < nlist.Size(); ++k) {
         const AtomPair& nn = nlist[k];

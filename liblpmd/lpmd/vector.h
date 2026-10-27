@@ -49,47 +49,48 @@ public:
   }
 
   GenericVector(const char* str) {
-    char* s = (char*)(malloc((strlen(str) + 1) * sizeof(char)));
-    strncpy(s, str, strlen(str));
-    char *p = s, *start = NULL;
-    int k = 0;
-    while (isblank(*p))
-      p++;
-    if (*p == '<') {
-      start = ++p;
-      while (*p != '\0') {
-        if ((*p == ',') || (*p == '>')) {
-          char token = (*p);
-          (*p) = '\0';
-          if (k == 3)
-            throw SyntaxError("Too many commas, GenericVector(" + std::string(str) + ")");
-          v[k++] = atof(start);
-          if (token == '>')
-            break;
-          p++;
-          start = p;
-        } else
-          p++;
-      }
-      if (k != 3)
-        throw SyntaxError("GenericVector(" + std::string(str) + ")");
-    } else {
-      start = p;
-      while (1) {
-        if (isblank(*p) || (*p == '\0')) {
-          if (k == 3)
-            throw SyntaxError("Too many delimiters, GenericVector(" + std::string(str) + ")");
-          (*p) = '\0';
-          v[k++] = atof(start);
-          p++;
-          start = p;
-          if (k == 3)
-            break;
-        } else
-          p++;
+    if (str == nullptr)
+      throw SyntaxError("GenericVector(null)");
+    const char* p = str;
+    auto skip_space = [&]() {
+      while (std::isspace(static_cast<unsigned char>(*p)))
+        ++p;
+    };
+    auto invalid = [&]() {
+      throw SyntaxError("GenericVector(" + std::string(str) + ")");
+    };
+    skip_space();
+    const bool bracketed = (*p == '<');
+    if (bracketed)
+      ++p;
+    for (int component = 0; component < 3; ++component) {
+      skip_space();
+      char* end = nullptr;
+      const double value = std::strtod(p, &end);
+      if (end == p)
+        invalid();
+      v[component] = static_cast<T>(value);
+      p = end;
+      if (component < 2) {
+        if (bracketed) {
+          skip_space();
+          if (*p != ',')
+            invalid();
+          ++p;
+        } else if (!std::isspace(static_cast<unsigned char>(*p))) {
+          invalid();
+        }
       }
     }
-    free(s);
+    skip_space();
+    if (bracketed) {
+      if (*p != '>')
+        invalid();
+      ++p;
+      skip_space();
+    }
+    if (*p != '\0')
+      invalid();
   }
 
   inline T& operator[](int q) { return v[q]; }

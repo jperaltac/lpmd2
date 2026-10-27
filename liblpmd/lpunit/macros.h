@@ -8,6 +8,7 @@
 #define __LPUNIT_MACROS_H__
 
 #include <lpunit/test.h>
+#include <cmath>
 
 #define LPUNIT_EPICFAIL "\033[31mFAILED\033[0m\n      "
 
@@ -32,7 +33,7 @@
   }
 
 #define LPUNIT_APPROX(a, b, s_a, s_b, tol)                                                         \
-  if (fabs(a - b) >= tol) {                                                                        \
+  if (!(std::fabs((a) - (b)) < (tol))) {                                                          \
     std::cout << LPUNIT_EPICFAIL << "(Expected " << s_a << " to be " << b << ", is " << a          \
               << " instead, tolerance: " << tol << ")\n";                                          \
     lpunit::Assert(false);                                                                         \

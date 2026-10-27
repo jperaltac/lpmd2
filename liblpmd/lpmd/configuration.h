@@ -18,7 +18,7 @@ class RuntimeContext;
 
 class Configuration : public TagHandler<Configuration> {
 public:
-  Configuration() : cellman(0), stresstensor(3, 3), runtime_context_(0) {}
+  Configuration() : cellman(0), virial(0.0), stresstensor(3, 3), runtime_context_(0) {}
   virtual ~Configuration(){};
 
   virtual BasicParticleSet& Atoms() = 0;

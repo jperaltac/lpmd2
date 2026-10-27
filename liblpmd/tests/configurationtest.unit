@@ -44,6 +44,13 @@ class MockCellManager: public CellManager
 
 @testsuite Tests de Configuration
 
+@test Virial starts at zero
+{
+ StoredConfiguration conf;
+ @equal conf.Virial(), 0.0
+}
+@end
+
 @test Test de SetCellManager
 {
  StoredConfiguration s;

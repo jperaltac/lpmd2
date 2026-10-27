@@ -9,7 +9,8 @@
 
 using namespace lpmd;
 
-VerletListCellManager::VerletListCellManager(std::string args) : Plugin("verletlist", "1.0") {
+VerletListCellManager::VerletListCellManager(std::string args)
+    : Plugin("verletlist", "1.0"), step_count(0), old_size(-1) {
   ParamList& params = (*this);
   //
   DefineKeyword("cutoff", "0.0");
@@ -19,16 +20,19 @@ VerletListCellManager::VerletListCellManager(std::string args) : Plugin("verletl
   // hasta aqui los valores por omision
   ProcessArguments(args);
   rcut = params["cutoff"];
+  extcut = params["extcutoff"];
   maxneighbors = int(params["maxneighbors"]);
   each = int(params["each"]);
-  if (fabs(extcut) < 1E-10)
+  if (!std::isfinite(rcut) || rcut < 0.0 || !std::isfinite(extcut) || extcut < 0.0 ||
+      each <= 0 || maxneighbors <= 0)
+    throw PluginError("verletlist", "Invalid cutoff, extcutoff, each, or maxneighbors");
+  if (extcut == 0.0)
     extcut = 1.08 * rcut;
-  head = NULL;
-  vlist = NULL;
-  nv = NULL;
+  if (!std::isfinite(extcut) || extcut < rcut)
+    throw PluginError("verletlist", "extcutoff must be at least cutoff");
 }
 
-VerletListCellManager::~VerletListCellManager() {}
+VerletListCellManager::~VerletListCellManager() = default;
 
 void VerletListCellManager::ShowHelp() const {
   std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
@@ -62,72 +66,74 @@ void VerletListCellManager::ShowHelp() const {
   std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 }
 
-void VerletListCellManager::Reset() {}
+void VerletListCellManager::Reset() {
+  old_size = -1;
+  step_count = 0;
+}
 
 void VerletListCellManager::UpdateVerletList(Configuration& conf) {
   if (fabs(rcut) < 1E-10)
     throw PluginError("verletlist", "No cutoff was defined");
-  BasicCell& cell = conf.Cell();
+  const BasicCell& cell = conf.Cell();
   BasicParticleSet& atoms = conf.Atoms();
   const long int n = atoms.Size();
-  if (n != old_size) {
-    delete[] head;
-    head = NULL;
-    delete[] nv;
-    nv = NULL;
-    for (long i = 0; i < old_size; ++i)
-      delete vlist[i];
-    delete[] vlist;
-    vlist = NULL;
-  }
-  if (head == NULL) {
-    head = new double[n];
-    nv = new long[n];
-    vlist = new double*[n];
-    for (long i = 0; i < n; ++i)
-      vlist[i] = new double[maxneighbors];
-  }
-  for (long i = 0; i < n; ++i)
-    nv[i] = 0;
+  // Mark the cache invalid until the complete list has been built. A capacity
+  // error must never leave a partially populated list marked as usable.
+  old_size = -1;
+  vlist.resize(n);
+  reference_positions.resize(n);
+  for (auto& neighbors : vlist)
+    neighbors.clear();
   for (long i = 0; i < n - 1; ++i)
     for (long j = i + 1; j < n; ++j) {
       const Vector rij = cell.Displacement(atoms[i].Position(), atoms[j].Position());
       if (rij.SquareModule() < extcut * extcut) {
-        if ((nv[j] == maxneighbors - 1) || (nv[i] == maxneighbors - 1))
+        if (vlist[j].size() >= static_cast<std::size_t>(maxneighbors) ||
+            vlist[i].size() >= static_cast<std::size_t>(maxneighbors))
           throw PluginError("verletlist", "maxneighbors is too small!");
         // Add i to verlet list of j
-        vlist[j][nv[j]++] = i;
+        vlist[j].push_back(i);
         // Add j to verlet list of i
-        vlist[i][nv[i]++] = j;
+        vlist[i].push_back(j);
       }
     }
+  for (long i = 0; i < n; ++i)
+    reference_positions[i] = atoms[i].Position();
+  for (int axis = 0; axis < 3; ++axis) {
+    reference_cell[axis] = cell[axis];
+    reference_periodicity[axis] = cell.Periodicity(axis);
+  }
+  old_size = n;
+  step_count = 0;
 }
 
 void VerletListCellManager::UpdateAtom(Configuration& conf, long i) {
-  nv[i] = 0;
-  BasicParticleSet& atoms = conf.Atoms();
-  BasicCell& cell = conf.Cell();
-  const long int n = atoms.Size();
-  for (long j = 0; j < n; ++j) {
-    if (j != i) {
-      const Vector rij = cell.Displacement(atoms[i].Position(), atoms[j].Position());
-      if (rij.SquareModule() < extcut * extcut) {
-        if (nv[i] == maxneighbors - 1)
-          throw PluginError("verletlist", "maxneighbors is too small!");
-        // Add j to verlet list of i
-        vlist[i][nv[i]++] = j;
-      }
-    }
-  }
+  (void)i;
+  // Both endpoints must be updated, including atoms which were not neighbors
+  // before the move (e.g. a Monte Carlo proposal).
+  UpdateVerletList(conf);
 }
 
 void VerletListCellManager::UpdateCell(Configuration& conf) {
   BasicParticleSet& atoms = conf.Atoms();
-  bool mustupdate = (((step_count % each) == 0) || (atoms.Size() != old_size));
+  const BasicCell& cell = conf.Cell();
+  bool mustupdate = (step_count >= each || atoms.Size() != old_size);
+  if (!mustupdate) {
+    for (int axis = 0; axis < 3; ++axis)
+      if ((cell[axis] - reference_cell[axis]).SquareModule() != 0.0 ||
+          cell.Periodicity(axis) != reference_periodicity[axis])
+        mustupdate = true;
+    // If every atom moves less than half the skin, no pair can enter the
+    // inner cutoff from outside the cached outer cutoff. Raw displacements
+    // conservatively rebuild on periodic wrapping as well.
+    const double limit2 = 0.25 * (extcut - rcut) * (extcut - rcut);
+    for (long i = 0; i < atoms.Size() && !mustupdate; ++i)
+      if ((atoms[i].Position() - reference_positions[i]).SquareModule() >= limit2)
+        mustupdate = true;
+  }
   if (mustupdate)
     UpdateVerletList(conf);
   step_count++;
-  old_size = atoms.Size();
 }
 
 double VerletListCellManager::Cutoff() const { return rcut; }
@@ -135,15 +141,33 @@ double VerletListCellManager::Cutoff() const { return rcut; }
 void VerletListCellManager::BuildNeighborList(Configuration& conf, long i, NeighborList& nlist,
                                               bool full, double rcu) {
   BasicParticleSet& atoms = conf.Atoms();
-  BasicCell& cell = conf.Cell();
+  const BasicCell& cell = conf.Cell();
   nlist.Clear();
+  if (std::isnan(rcu) || rcu <= 0.0)
+    throw PluginError("verletlist", "Requested neighbor cutoff must be positive");
+  if (atoms.Size() != old_size)
+    throw PluginError("verletlist", "Call UpdateCell before querying neighbors");
   AtomPair nn;
   nn.i = &atoms[i];
   nn.i_index = i;
   const Vector& ipos = atoms[i].Position();
+  if (rcu > rcut) {
+    // The skin only guarantees completeness for radii up to rcut. Larger
+    // analysis queries must not silently use an incomplete cached list.
+    for (long j = 0; j < atoms.Size(); ++j) {
+      if (j == i || (!full && j < i))
+        continue;
+      nn.j = &atoms[j];
+      nn.j_index = j;
+      nn.rij = cell.Displacement(ipos, nn.j->Position());
+      nn.r2 = nn.rij.SquareModule();
+      if (nn.r2 < rcu * rcu)
+        nlist.Append(nn);
+    }
+    return;
+  }
   if (full) {
-    for (long jp = 0; jp < nv[i]; ++jp) {
-      long j = vlist[i][jp];
+    for (long j : vlist[i]) {
       nn.j = &(atoms[j]);
       nn.rij = cell.Displacement(ipos, nn.j->Position());
       nn.r2 = nn.rij.SquareModule();
@@ -152,8 +176,7 @@ void VerletListCellManager::BuildNeighborList(Configuration& conf, long i, Neigh
         nlist.Append(nn);
     }
   } else {
-    for (long jp = 0; jp < nv[i]; ++jp) {
-      long j = vlist[i][jp];
+    for (long j : vlist[i]) {
       if (j < i)
         continue;
       nn.j = &(atoms[j]);

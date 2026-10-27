@@ -6,10 +6,16 @@ if(LPMD_ENABLE_OPENMP)
     target_link_libraries(forceparallel_test PRIVATE OpenMP::OpenMP_CXX)
 endif()
 add_test(NAME lpmd.forceparallel COMMAND forceparallel_test)
+set_tests_properties(lpmd.forceparallel PROPERTIES TIMEOUT 60)
 
 if(NOT LPMD_LPUNIT_GENERATOR)
     message(FATAL_ERROR "LPUnit generator path not provided")
 endif()
+
+add_test(NAME lpmd.lpunit.generator
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/lpunit_generator_test.py
+            ${LPMD_LPUNIT_GENERATOR})
+set_tests_properties(lpmd.lpunit.generator PROPERTIES TIMEOUT 30)
 
 set(LPMD_TEST_UNITS
     arraytest.unit
@@ -27,6 +33,7 @@ set(LPMD_TEST_UNITS
     orthogonalcelltest.unit
     paramvaluetest.unit
     particlesettest.unit
+    potentialtest.unit
     propertiestest.unit
     simulationcelltest.unit
     simulationtest.unit
@@ -49,6 +56,41 @@ endforeach()
 
 set(LPMD_TEST_TARGETS forceparallel_test)
 
+add_executable(lennardjones_regression lennardjones_regression.cc
+    ${PROJECT_SOURCE_DIR}/plugins/lennardjones.cc)
+target_include_directories(lennardjones_regression PRIVATE ${PROJECT_SOURCE_DIR}/plugins)
+target_link_libraries(lennardjones_regression PRIVATE lpmd::core)
+add_test(NAME lpmd.lennardjones COMMAND lennardjones_regression)
+set_tests_properties(lpmd.lennardjones PROPERTIES TIMEOUT 15)
+list(APPEND LPMD_TEST_TARGETS lennardjones_regression)
+
+add_executable(lpunit_regression lpunit_regression.cc)
+target_link_libraries(lpunit_regression PRIVATE lpunit)
+foreach(case lifecycle nan)
+    add_test(NAME lpmd.lpunit.${case} COMMAND lpunit_regression ${case})
+    set_tests_properties(lpmd.lpunit.${case} PROPERTIES TIMEOUT 15)
+endforeach()
+list(APPEND LPMD_TEST_TARGETS lpunit_regression)
+
+foreach(manager linkedcell verletlist)
+    add_executable(${manager}_regression neighbor_regression.cc
+        ${PROJECT_SOURCE_DIR}/plugins/${manager}.cc)
+    target_include_directories(${manager}_regression PRIVATE ${PROJECT_SOURCE_DIR}/plugins)
+    target_link_libraries(${manager}_regression PRIVATE lpmd::core)
+    set(cases basic cutoffs move resize invalid geometry)
+    if(manager STREQUAL "verletlist")
+        target_compile_definitions(${manager}_regression PRIVATE TEST_VERLETLIST)
+        list(APPEND cases capacity skin)
+    else()
+        list(APPEND cases smallgrid defaultgrid widebins)
+    endif()
+    foreach(case ${cases})
+        add_test(NAME lpmd.${manager}.${case} COMMAND ${manager}_regression ${case})
+        set_tests_properties(lpmd.${manager}.${case} PROPERTIES TIMEOUT 15)
+    endforeach()
+    list(APPEND LPMD_TEST_TARGETS ${manager}_regression)
+endforeach()
+
 foreach(unit ${LPMD_TEST_UNITS})
     get_filename_component(test_name ${unit} NAME_WE)
     set(generated_source ${CMAKE_CURRENT_BINARY_DIR}/${test_name}.cc)
@@ -66,6 +108,7 @@ foreach(unit ${LPMD_TEST_UNITS})
     add_executable(${test_name}_unit ${generated_source})
     target_link_libraries(${test_name}_unit PRIVATE lpunit lpmd::core)
     add_test(NAME lpmd.${test_name} COMMAND ${test_name}_unit)
+    set_tests_properties(lpmd.${test_name} PROPERTIES TIMEOUT 60)
 
     list(APPEND LPMD_TEST_TARGETS ${test_name}_unit)
 endforeach()

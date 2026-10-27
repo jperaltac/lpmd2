@@ -54,18 +54,23 @@ void PairPotential::UpdateForces(Configuration& conf) {
   {
     RuntimeContextScope context(conf.Context());
     auto& local = partial[detail::ForceThreadIndex()];
+    // Reuse each worker's capacity across atoms instead of allocating a fresh
+    // neighbor vector for every query in every simulation step.
+    NeighborList nlist;
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
     for (long i = 0; i < n; ++i) {
-      NeighborList nlist;
       conf.GetCellManager().BuildNeighborList(conf, i, nlist, false, cutoff);
+      const BasicAtom& atom = atoms[i];
+      const int species = atom.Z();
+      const double mass = atom.Mass();
       for (long k = 0; k < nlist.Size(); ++k) {
         const AtomPair& nn = nlist[k];
-        if (AppliesTo(atoms[i].Z(), nn.j->Z()) && nn.r2 < cutoff * cutoff) {
+        if (AppliesTo(species, nn.j->Z()) && nn.r2 < cutoff * cutoff) {
           local.energy += pairEnergy(sqrt(nn.r2));
           local.AddPair(i, nn.j_index, nn.rij, pairForce(nn.rij), forcefactor,
-                        atoms[i].Mass(), nn.j->Mass());
+                        mass, nn.j->Mass());
         }
       }
     }

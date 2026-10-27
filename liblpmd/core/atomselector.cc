@@ -93,6 +93,12 @@ private:
 
 class lpmd::AtomSelectorImpl {
 public:
+  ~AtomSelectorImpl() { Clear(); }
+  void Clear() {
+    for (long i = 0; i < s_array.Size(); ++i)
+      delete s_array[i];
+    s_array.Clear();
+  }
   Array<Selector<BasicParticleSet>*> s_array;
 };
 
@@ -104,10 +110,7 @@ lpmd::AtomSelectorImpl AtomSelector::impl = AtomSelectorImpl();
 
 AtomSelector::AtomSelector() {}
 
-AtomSelector::~AtomSelector() {
-  for (long int i = 0; i < impl.s_array.Size(); ++i)
-    delete impl.s_array[i];
-}
+AtomSelector::~AtomSelector() { impl.Clear(); }
 
 Selector<BasicParticleSet>& AtomSelector::WithZ(int z) {
   Selector<BasicParticleSet>* selector = new ZAtomSelector(z);

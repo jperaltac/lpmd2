@@ -29,12 +29,16 @@ class TestSuite:
       inBlock, thisBlock = False, []
       thisTestName = ''
       self.metadata['ignoretests'] = []
-      for line in f:
+      for line_number, line in enumerate(f, 1):
           ls = line.strip()
           if ls == '' or ls.startswith('//'): continue
           if ls.startswith('@'):
              lspl = ls.split()
              tagname, value = lspl[0][1:], ' '.join(lspl[1:])
+             if tagname in ('test', 'beforetest', 'aftertest') and inBlock:
+                raise SyntaxError("line %d: missing @end before @%s" % (line_number, tagname))
+             if tagname == 'end' and not inBlock:
+                raise SyntaxError("line %d: unexpected @end" % line_number)
              if tagname == 'testsuite': self.metadata['suitename'] = value.strip()
              elif tagname == 'ignore': self.metadata['ignoretests'].append(thisTestName)
              elif tagname == 'test':
@@ -66,6 +70,8 @@ class TestSuite:
           else:
              if inBlock: thisBlock.append(line.rstrip())
              else: self.header.append(line.rstrip()) 
+      if inBlock:
+          raise SyntaxError("missing @end at end of file")
 
   def SplitCArguments(self, rhs):
       openprot = False

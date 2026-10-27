@@ -30,7 +30,7 @@ public:
   NonOrthogonalCell(const double a, const double b, const double c, const double alpha,
                     const double beta, const double gamma);
 
-  NonOrthogonalCell(std::string str) {
+  NonOrthogonalCell(std::string str) : NonOrthogonalCell() {
     RemoveUnnecessarySpaces(str);
     if (str[0] == '<') {
       Array<std::string> bv = ParseThreeVectors(str);
@@ -58,7 +58,11 @@ public:
     UpdateTransfMatrix();
   }
 
-  bool IsOrthogonal() const { return !(nonortg); }
+  bool IsOrthogonal() const {
+    if (mustupdate)
+      UpdateTransfMatrix();
+    return nonortg <= 1.0E-10;
+  }
 
   inline NonOrthogonalCell& operator=(const NonOrthogonalCell& c) {
     if (this != &c) {
@@ -72,7 +76,7 @@ public:
   }
 
   inline Vector& operator[](int q) {
-    UpdateTransfMatrix();
+    mustupdate = true;
     return v[q];
   }
 
@@ -130,25 +134,25 @@ public:
   }
 
   Vector Fractional(const Vector& cv) const {
-    if (firstapp) {
+    if (firstapp || mustupdate) {
       UpdateTransfMatrix();
       firstapp = false;
     }
     Vector tmp(cv);
     ConvertToInternal(tmp);
     for (int q = 0; q < 3; ++q)
-      tmp[q] /= v[q].Module();
+      tmp[q] /= lengths[q];
     return tmp;
   }
 
   Vector Cartesian(const Vector& cv) const {
-    if (firstapp) {
+    if (firstapp || mustupdate) {
       UpdateTransfMatrix();
       firstapp = false;
     }
     Vector tmp(cv);
     for (int q = 0; q < 3; ++q)
-      tmp[q] *= v[q].Module();
+      tmp[q] *= lengths[q];
     ConvertToExternal(tmp);
     return tmp;
   }
@@ -162,7 +166,7 @@ public:
     ConvertToInternal(vtmp);
     for (int q = 0; q < 3; ++q) {
       if (p[q] == true) {
-        double ll = v[q].Module();
+        double ll = lengths[q];
         if (vtmp[q] < 0.0)
           vtmp[q] -= ll * floor(vtmp[q] / ll);
         else if (vtmp[q] > ll)
@@ -181,7 +185,7 @@ public:
     Vector vtmp(a);
     ConvertToInternal(vtmp);
     for (int q = 0; q < 3; ++q)
-      if ((vtmp[q] < 0.0) || (vtmp[q] > v[q].Module()))
+      if ((vtmp[q] < 0.0) || (vtmp[q] > lengths[q]))
         return false;
     return true;
   }
@@ -194,6 +198,7 @@ private:
   Vector v[3];
   bool p[3];
   mutable double tm[3][3], itm[3][3];
+  mutable double lengths[3];
   mutable double nonortg;
   mutable bool mustupdate;
   mutable bool firstapp;
@@ -201,8 +206,8 @@ private:
   inline void UpdateTransfMatrix() const {
     Vector vnorm[3];
     for (int q = 0; q < 3; ++q) {
-      vnorm[q] = v[q];
-      vnorm[q].Normalize();
+      lengths[q] = v[q].Module();
+      vnorm[q] = v[q] / lengths[q];
     }
     tm[0][0] = vnorm[1][1] * vnorm[2][2] - vnorm[2][1] * vnorm[1][2];
     tm[1][0] = vnorm[2][0] * vnorm[1][2] - vnorm[1][0] * vnorm[2][2];
@@ -297,7 +302,7 @@ inline Vector lpmd::NonOrthogonalCell::Displacement(const Vector& a, const Vecto
   for (int i = 0; i < 3; ++i) {
     double q = d[i];
     if (p[i] == true) {
-      double ll = v[i].Module();
+      double ll = lengths[i];
       if (q >= 0.5 * ll)
         q -= ll;
       else if (q < -0.5 * ll)

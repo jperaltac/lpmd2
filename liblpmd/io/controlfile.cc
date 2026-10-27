@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <sstream>
 
 using namespace lpmd;
@@ -23,7 +24,7 @@ public:
   Array<std::string> blockfooters;
   long int line_count;
   const ParamList* read_options;
-  std::istream* istr;
+  std::unique_ptr<std::istream> istr;
 
   std::string GetNextWord();
   std::string MatchCommand();
@@ -82,10 +83,9 @@ inline std::string AddBlockContent(const std::string& blockname, const std::stri
     inpbuffer += (tmpwords[z] + " ");
   while (1) {
     std::string line;
-    if (istr.eof())
+    if (!getline(istr, line))
       throw SyntaxError("\"" + blockname + "\" block was not properly closed with \"" + terminator +
                         "\"");
-    getline(istr, line);
     RemoveUnnecessarySpaces(line);
     if (line == terminator)
       break;
@@ -99,9 +99,10 @@ inline std::string AddBlockContent(const std::string& blockname, const std::stri
 void ControlFile::ReadLine(const std::string& line) {
   std::string tmp = line;
   const ParamList& options = *(impl->read_options);
-  while (tmp[tmp.size() - 1] == '\\') {
+  while (!tmp.empty() && tmp.back() == '\\') {
     std::string tmp2;
-    getline(*(impl->istr), tmp2);
+    if (!getline(*(impl->istr), tmp2))
+      throw SyntaxError("Unfinished continuation in input file \"" + impl->filename + "\"");
     tmp = tmp.substr(0, tmp.size() - 1) + tmp2;
   }
   (impl->line_count)++;
@@ -173,8 +174,7 @@ void ControlFile::Read(std::istream& real_istr, const ParamList& options,
   //
   //
   std::string inpbuffer, line;
-  while (!real_istr.eof()) {
-    getline(real_istr, line);
+  while (getline(real_istr, line)) {
     Array<std::string> tmpwords = StringSplit(line);
     if (tmpwords.Size() == 0)
       continue;
@@ -193,7 +193,9 @@ void ControlFile::Read(std::istream& real_istr, const ParamList& options,
   //
   //
   //
-  impl->istr = new std::istringstream(inpbuffer);
+  if (real_istr.bad() || !real_istr.eof())
+    throw SyntaxError("Failed to read input file \"" + inpfile + "\"");
+  impl->istr = std::make_unique<std::istringstream>(inpbuffer);
   std::string tmp;
   impl->line_count = 0;
   impl->filename = inpfile;
@@ -202,7 +204,7 @@ void ControlFile::Read(std::istream& real_istr, const ParamList& options,
     RemoveComments(tmp);
     ReadLine(tmp);
   }
-  delete impl->istr;
+  impl->istr.reset();
 }
 
 std::string ControlFile::ParseCommandArguments(Map& param, const std::string& cmd,
@@ -264,6 +266,8 @@ std::string ControlFileImpl::MatchCommand() {
        it != reservedkw.end(); ++it) {
     std::string key = it->first;
     Array<std::string> lt = StringSplit(key);
+    if (lt.Size() > words.Size())
+      continue;
     bool badmatch = false;
     for (long int j = 0; j < lt.Size(); ++j) {
       const std::string& ak = lt[j];

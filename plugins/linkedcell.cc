@@ -3,15 +3,17 @@
 //
 
 #include "linkedcell.h"
+#include <algorithm>
+#include <cmath>
+#include <limits>
 
 using namespace lpmd;
 
-inline int WrapAround(int i, int n) {
-  if (i < 0)
-    i += ((-i / n) + 1) * n;
-  else if (i > n - 1)
-    i -= (i / n) * n;
-  return i;
+namespace {
+int WrapAround(int i, int n) {
+  const int remainder = i % n;
+  return remainder < 0 ? remainder + n : remainder;
+}
 }
 
 LinkedCell::LinkedCell(std::string args) : Plugin("linkedcell", "1.0") {
@@ -22,44 +24,18 @@ LinkedCell::LinkedCell(std::string args) : Plugin("linkedcell", "1.0") {
   DefineKeyword("nz", "0");
   DefineKeyword("mode", "noauto");
   DefineKeyword("warn-outside", "true");
-  //
   ProcessArguments(args);
   cutoff = double(params["cutoff"]);
   nx = int(params["nx"]);
   ny = int(params["ny"]);
   nz = int(params["nz"]);
-  if (nx == 0 || ny == 0 || nz == 0)
-    mode = true;
-  else if ((nx >= 4 && ny >= 4) && nz >= 4)
-    mode = false;
-  else
-    mode = true;
-  //
-  if (params["mode"] == "auto" || params["mode"] == "AUTO")
-    mode = true;
-  else
-    mode = false;
+  if (!std::isfinite(cutoff) || cutoff <= 0.0 || nx < 0 || ny < 0 || nz < 0)
+    throw PluginError("linkedcell", "cutoff must be positive and subdivisions nonnegative");
+  mode = nx == 0 || ny == 0 || nz == 0 || params["mode"] == "auto" || params["mode"] == "AUTO";
   warn_outside = (params["warn-outside"] == "true");
-  //
-  //
-  //
-  head = tail = 0;
-  atomlist = indexc = 0;
-  subcell = 0;
-  full_list_half = 0;
-  full_list_full = 0;
-  last_atoms_size = -1;
 }
 
-LinkedCell::~LinkedCell() {
-  delete[] head;
-  delete[] tail;
-  delete[] atomlist;
-  delete[] subcell;
-  delete[] indexc;
-  delete[] full_list_half;
-  delete[] full_list_full;
-}
+LinkedCell::~LinkedCell() = default;
 
 void LinkedCell::ShowHelp() const {
   std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
@@ -107,256 +83,141 @@ void LinkedCell::ShowHelp() const {
   std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 }
 
-void LinkedCell::Reset() {}
+void LinkedCell::Reset() {
+  head.clear();
+  atomlist.clear();
+  indexc.clear();
+  atomptr.clear();
+  offsets.clear();
+}
 
 void LinkedCell::UpdateCell(Configuration& conf) {
   BasicParticleSet& atoms = conf.Atoms();
-  BasicCell& cell = conf.Cell();
-  if (atoms.Size() != last_atoms_size) {
-    if (indexc != 0)
-      delete[] indexc;
-    if (atomlist != 0)
-      delete[] atomlist;
-    if (full_list_half != 0)
-      delete[] full_list_half;
-    if (full_list_full != 0)
-      delete[] full_list_full;
-    indexc = 0;
-    atomlist = 0;
-    full_list_half = 0;
-    full_list_full = 0;
-  }
-  if (atomlist == 0) {
-    atomlist = new long[atoms.Size()];
-  }
-  if (indexc == 0) {
-    indexc = new long[atoms.Size()];
-  }
-  if (full_list_half == 0) {
-    full_list_half = new NeighborList[atoms.Size()];
-    for (int i = 0; i < atoms.Size(); ++i)
-      full_list_half[i].Clear();
-  }
-  if (full_list_full == 0) {
-    full_list_full = new NeighborList[atoms.Size()];
-    for (int i = 0; i < atoms.Size(); ++i)
-      full_list_full[i].Clear();
-  }
-  last_atoms_size = atoms.Size();
-  if (mode == true) {
-    double minx = cell[0].Module();
-    double miny = cell[1].Module();
-    double minz = cell[2].Module();
-    double fnn = (cutoff / 2.5); // NOTE : Approximated value.
-    int n = 1;
-    while (true) {
-      double previo = fabs(minx / n - fnn);
-      n++;
-      double actual = fabs(minx / n - fnn);
-      if (actual < 1E-3)
-        break;
-      else if (actual > previo) {
-        n--;
-        break;
-      } else
-        continue;
-    }
-    if ((n % 2) != 0)
-      n--;
-    nx = n;
-    DebugStream() << "-> Using nx = " << nx << " subdivision scheme." << '\n';
-    n = 1;
-    while (true) {
-      double previo = fabs(miny / n - fnn);
-      n++;
-      double actual = fabs(miny / n - fnn);
-      if (actual < 1E-3)
-        break;
-      else if (actual > previo) {
-        n--;
-        break;
-      } else
-        continue;
-    }
-    if ((n % 2) != 0)
-      n--;
-    ny = n;
-    DebugStream() << "-> Using ny = " << ny << " subidvision scheme." << '\n';
-    n = 1;
-    while (true) {
-      double previo = fabs(minz / n - fnn);
-      n++;
-      double actual = fabs(minz / n - fnn);
-      if (actual < 1E-3)
-        break;
-      else if (actual > previo) {
-        n--;
-        break;
-      } else
-        continue;
-    }
-    if ((n % 2) != 0)
-      n--;
-    nz = n;
-    DebugStream() << "-> Using nz = " << nz << " subdivision scheme." << '\n';
-    n = 1;
-    mode = false;
-  }
-  //
-  //
-  //
-  if (head != 0)
-    delete[] head;
-  head = new int[nx * ny * nz];
-  if (tail != 0)
-    delete[] tail;
-  tail = new int[nx * ny * nz];
-  //
-  if (subcell == 0) {
-    double d = cell[0].Module() / double(nx);
-    if (cell[1].Module() / double(ny) < d)
-      d = cell[1].Module() / double(ny);
-    if (cell[2].Module() / double(nz) < d)
-      d = cell[2].Module() / double(nz);
-    int side = int(ceil((cutoff / d) - 0.5));
-    cells_inside = (2 * side + 1) * (2 * side + 1) * (2 * side + 1);
-    DebugStream() << "-> Using " << cells_inside << " neighboring subcells\n";
-    subcell = new int[(nx * ny * nz) * cells_inside];
-    int z[3];
-    for (int k = 0; k < nz; ++k)
-      for (int j = 0; j < ny; ++j)
-        for (int i = 0; i < nx; ++i) {
-          int r = 0;
-          long q = k * (nx * ny) + j * nx + i;
-          for (int dz = -side; dz <= side; ++dz)
-            for (int dy = -side; dy <= side; ++dy)
-              for (int dx = -side; dx <= side; ++dx) {
-                z[0] = WrapAround(i + dx, nx);
-                z[1] = WrapAround(j + dy, ny);
-                z[2] = WrapAround(k + dz, nz);
-                long p = z[2] * (nx * ny) + z[1] * nx + z[0];
-                subcell[q * cells_inside + (r++)] = p;
-              }
-        }
-  }
+  const BasicCell& cell = conf.Cell();
+  const double volume = std::abs(Dot(Cross(cell[0], cell[1]), cell[2]));
+  if (!std::isfinite(volume) || volume <= 0.0)
+    throw PluginError("linkedcell", "Simulation cell must have a finite, positive volume");
 
-  //
-  for (long q = 0; q < nx * ny * nz; ++q)
-    head[q] = tail[q] = -1;
-  for (long r = 0; r < atoms.Size(); ++r) {
-    full_list_half[r].Clear();
-    full_list_full[r].Clear();
-    const Vector fpos = cell.Fractional(atoms[r].Position());
-    //
-    int i = WrapAround(int(floor(nx * fpos[0])), nx);
-    int j = WrapAround(int(floor(ny * fpos[1])), ny);
-    int k = WrapAround(int(floor(nz * fpos[2])), nz);
-    long q = k * (nx * ny) + j * nx + i;
-    indexc[r] = (((q >= 0) && (q < nx * ny * nz)) ? q : -1);
-    q = indexc[r];
-    if (q >= 0) {
-      if (head[q] == -1)
-        head[q] = tail[q] = r;
-      else {
-        atomlist[tail[q]] = r;
-        tail[q] = r;
-      }
+  // The distance between cell faces, rather than the length of a lattice
+  // vector, bounds the fractional displacement in skew cells.
+  double height[3];
+  int dimensions[3] = {nx, ny, nz};
+  for (int axis = 0; axis < 3; ++axis) {
+    height[axis] = volume / Cross(cell[(axis + 1) % 3], cell[(axis + 2) % 3]).Module();
+    if (!std::isfinite(height[axis]) || height[axis] <= 0.0)
+      throw PluginError("linkedcell", "Invalid cell geometry");
+    if (mode) {
+      const double divisions = std::max(1.0, std::floor(height[axis] / cutoff));
+      if (divisions > std::numeric_limits<int>::max())
+        throw PluginError("linkedcell", "Too many subdivisions");
+      dimensions[axis] = static_cast<int>(divisions);
     }
-    atomlist[r] = -1;
+  }
+  nx = dimensions[0];
+  ny = dimensions[1];
+  nz = dimensions[2];
+  std::size_t cell_count = 1;
+  for (int count : dimensions) {
+    if (cell_count > head.max_size() / static_cast<std::size_t>(count))
+      throw PluginError("linkedcell", "Too many subdivisions");
+    cell_count *= static_cast<std::size_t>(count);
+  }
+  head.assign(cell_count, -1);
+  atomlist.assign(atoms.Size(), -1);
+  indexc.resize(atoms.Size());
+  atomptr.resize(atoms.Size());
+
+  // Unique periodic offsets avoid counting a neighbor several times when an
+  // axis has fewer bins than the search stencil. A single stencil replaces
+  // the previous table of neighbors for every bin.
+  int first[3], count[3];
+  for (int axis = 0; axis < 3; ++axis) {
+    const double reach = std::ceil(cutoff * dimensions[axis] / height[axis]);
+    if (reach >= dimensions[axis] / 2) {
+      first[axis] = -(dimensions[axis] / 2);
+      count[axis] = dimensions[axis];
+    } else {
+      first[axis] = -static_cast<int>(reach);
+      count[axis] = 2 * static_cast<int>(reach) + 1;
+    }
+  }
+  offsets.clear();
+  for (int z = 0; z < count[2]; ++z)
+    for (int y = 0; y < count[1]; ++y)
+      for (int x = 0; x < count[0]; ++x)
+        offsets.push_back({first[0] + x, first[1] + y, first[2] + z});
+
+  for (long atom = 0; atom < atoms.Size(); ++atom) {
+    // Refresh pointers after every update/resizing. Neighbor queries can then
+    // avoid a virtual particle-container lookup for every candidate pair.
+    atomptr[atom] = &atoms[atom];
+    const Vector fractional = cell.Fractional(atomptr[atom]->Position());
+    int bin[3];
+    for (int axis = 0; axis < 3; ++axis) {
+      if (!std::isfinite(fractional[axis]))
+        throw PluginError("linkedcell", "Non-finite atom position");
+      const double wrapped = fractional[axis] - std::floor(fractional[axis]);
+      bin[axis] = std::min(dimensions[axis] - 1, static_cast<int>(wrapped * dimensions[axis]));
+    }
+    const long index = (static_cast<long>(bin[2]) * ny + bin[1]) * nx + bin[0];
+    indexc[atom] = index;
+    atomlist[atom] = head[index];
+    head[index] = atom;
   }
 }
 
-void LinkedCell::UpdateAtom(Configuration& conf, long r) {
-  BasicParticleSet& atoms = conf.Atoms();
-  BasicCell& cell = conf.Cell();
-  full_list_half[r].Clear();
-  full_list_full[r].Clear();
-  const Vector fpos = cell.Fractional(atoms[r].Position());
-  //
-  int i = WrapAround(int(floor(nx * fpos[0])), nx);
-  int j = WrapAround(int(floor(ny * fpos[1])), ny);
-  int k = WrapAround(int(floor(nz * fpos[2])), nz);
-  long q = k * (nx * ny) + j * nx + i;
-  indexc[r] = (((q >= 0) && (q < nx * ny * nz)) ? q : -1);
-  q = indexc[r];
-  if (q >= 0) {
-    if (head[q] == -1)
-      head[q] = tail[q] = r;
-    else {
-      atomlist[tail[q]] = r;
-      tail[q] = r;
-    }
-  }
-  atomlist[r] = -1;
+void LinkedCell::UpdateAtom(Configuration& conf, long i) {
+  (void)i;
+  // Rebuild the links so both the old and new bins remain valid. Appending an
+  // already linked atom could previously create cycles and stale neighbors.
+  UpdateCell(conf);
 }
 
 void LinkedCell::BuildNeighborList(Configuration& conf, long i, NeighborList& nlist, bool full,
                                    double rcut) {
-  // std::cerr << "Llamado  a BuildNeighb " << '\n';
   BasicParticleSet& atoms = conf.Atoms();
-  BasicCell& cell = conf.Cell();
-  // const Vector fpos = cell.Fractional(atoms[i].Position());
-  //
-  // int p = WrapAround(int(floor(nx*fpos[0])), nx);
-  // int q = WrapAround(int(floor(ny*fpos[1])), ny);
-  // int r = WrapAround(int(floor(nz*fpos[2])), nz);
+  const BasicCell& cell = conf.Cell();
   nlist.Clear();
-  long cind = indexc[i];
-  if (cind < 0) {
-    // atom was marked as outside the box
-    if (warn_outside)
-      ShowWarning("linkedcell",
-                  "Atom with i=" + ToString(i) + " detected far outside the simulation box\n");
+  if (std::isnan(rcut) || rcut <= 0.0)
+    throw PluginError("linkedcell", "Requested neighbor cutoff must be positive");
+  if (indexc.size() != static_cast<std::size_t>(atoms.Size()) || head.empty())
+    throw PluginError("linkedcell", "Call UpdateCell before querying neighbors");
+
+  AtomPair pair;
+  pair.i = atomptr[i];
+  pair.i_index = i;
+  const Vector& position = pair.i->Position();
+  const double radius2 = rcut * rcut;
+  auto append = [&](long j) {
+    if (j == i || (!full && j > i))
+      return;
+    pair.j = atomptr[j];
+    pair.j_index = j;
+    pair.rij = cell.Displacement(position, pair.j->Position());
+    pair.r2 = pair.rij.SquareModule();
+    if (pair.r2 < radius2)
+      nlist.Append(pair);
+  };
+
+  // A query larger than the configured stencil needs an exhaustive search;
+  // silently using the smaller stencil would miss valid neighbors.
+  if (rcut > cutoff) {
+    for (long j = 0; j < atoms.Size(); ++j)
+      append(j);
     return;
   }
-  //
-  AtomPair nn;
 
-  if (full_list_half[i].Size() == 0 && full == false) {
-    nn.i = &atoms[i];
-    nn.i_index = i;
-    for (int c = 0; c < cells_inside; ++c) {
-      int neighbor_cell = subcell[cind * cells_inside + c];
-      for (long z = head[neighbor_cell]; z != -1; z = atomlist[z]) {
-        if (z == i)
-          continue;
-        if ((full == false) && (z > i))
-          continue;
-        nn.j = &atoms[z];
-        nn.rij = cell.Displacement(nn.i->Position(), nn.j->Position());
-        nn.r2 = nn.rij.SquareModule();
-        nn.j_index = z;
-        if (nn.r2 < rcut * rcut) {
-          full_list_half[i].Append(nn);
-        }
-      }
-    }
+  const long index = indexc[i];
+  const int x = index % nx;
+  const int y = (index / nx) % ny;
+  const int z = index / (static_cast<long>(nx) * ny);
+  for (const auto& offset : offsets) {
+    const long neighbor = (static_cast<long>(WrapAround(z + offset[2], nz)) * ny +
+                           WrapAround(y + offset[1], ny)) * nx +
+                          WrapAround(x + offset[0], nx);
+    for (long j = head[neighbor]; j != -1; j = atomlist[j])
+      append(j);
   }
-  if (full_list_full[i].Size() == 0 && full == true) {
-    nn.i = &atoms[i];
-    nn.i_index = i;
-    for (int c = 0; c < cells_inside; ++c) {
-      int neighbor_cell = subcell[cind * cells_inside + c];
-      for (long z = head[neighbor_cell]; z != -1; z = atomlist[z]) {
-        if (z == i)
-          continue;
-        if ((full == false) && (z > i))
-          continue;
-        nn.j = &atoms[z];
-        nn.rij = cell.Displacement(nn.i->Position(), nn.j->Position());
-        nn.r2 = nn.rij.SquareModule();
-        nn.j_index = z;
-        if (nn.r2 < rcut * rcut) {
-          full_list_full[i].Append(nn);
-        }
-      }
-    }
-  }
-
-  if (full == true)
-    nlist = full_list_full[i];
-  else
-    nlist = full_list_half[i];
 }
 
 // Esto se incluye para que el modulo pueda ser cargado dinamicamente

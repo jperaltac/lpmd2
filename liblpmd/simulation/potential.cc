@@ -10,7 +10,7 @@
 
 using namespace lpmd;
 
-Potential::Potential() { rcutoff = HUGE_VAL; }
+Potential::Potential() : species1(-1), species2(-1), rcutoff(HUGE_VAL), energycache(0.0) {}
 
 Potential::~Potential() {}
 
@@ -20,8 +20,13 @@ void Potential::Initialize(Configuration& conf) {
 } // icc 869
 
 // s1 == s2 == -1 is used as a wildcard
-void Potential::SetValidSpecies(int s1, int s2) { spc_sum = s1 + s2; }
+void Potential::SetValidSpecies(int s1, int s2) {
+  species1 = s1;
+  species2 = s2;
+}
 
 bool Potential::AppliesTo(int s1, int s2) const {
-  return ((spc_sum < 0) || ((s1 + s2) == spc_sum));
+  return (species1 == -1 && species2 == -1) ||
+         (s1 == species1 && s2 == species2) ||
+         (s1 == species2 && s2 == species1);
 }

@@ -7,6 +7,7 @@
 
 #include <lpmd/cellmanager.h>
 #include <lpmd/plugin.h>
+#include <vector>
 
 using namespace lpmd;
 
@@ -26,9 +27,10 @@ public:
 private:
   double rcut, extcut;
   long step_count, each, old_size, maxneighbors;
-  double* head;
-  long* nv;
-  double** vlist;
+  std::vector<std::vector<long>> vlist;
+  std::vector<Vector> reference_positions;
+  Vector reference_cell[3];
+  bool reference_periodicity[3];
 };
 
 #endif

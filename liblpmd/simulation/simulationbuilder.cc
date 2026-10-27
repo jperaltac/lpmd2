@@ -306,6 +306,12 @@ private:
 //
 class lpmd::SimBuildImpl {
 public:
+  ~SimBuildImpl() { Clear(); }
+  void Clear() {
+    for (long i = 0; i < s_array.Size(); ++i)
+      delete s_array[i];
+    s_array.Clear();
+  }
   Array<Simulation*> s_array;
 };
 
@@ -313,10 +319,7 @@ lpmd::SimBuildImpl SimulationBuilder::impl = SimBuildImpl();
 
 SimulationBuilder::SimulationBuilder() {}
 
-SimulationBuilder::~SimulationBuilder() {
-  for (long int i = 0; i < impl.s_array.Size(); ++i)
-    delete impl.s_array[i];
-}
+SimulationBuilder::~SimulationBuilder() { impl.Clear(); }
 
 Simulation& SimulationBuilder::CreateFixedOrthogonal(RuntimeContext& context, long int atoms,
                                                      const BasicAtom& at) {

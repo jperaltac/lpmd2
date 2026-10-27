@@ -6,6 +6,18 @@ using namespace lpmd;
 
 @testsuite Tests de AtomSelector
 
+@test Selector registry can be cleaned more than once
+{
+ for (int iteration=0; iteration<2; ++iteration)
+ {
+  AtomSelector owner;
+  ParticleSet ps(2, Atom("Ar"));
+  Selector<BasicParticleSet>& selector = AtomSelector::WithZ(18);
+  @equal selector.SelectFrom(ps).Size(), 2
+ }
+}
+@end
+
 @test Seleccion por especies
 {
  ParticleSet ps;

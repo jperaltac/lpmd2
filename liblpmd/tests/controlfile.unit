@@ -28,6 +28,35 @@ class TestControlFile: public ControlFile
 
 @testsuite Tests de ControlFile
 
+@test Failed stream cannot loop forever
+{
+ ControlFile cf;
+ ParamList options;
+ std::istringstream input("ignored");
+ input.setstate(std::ios::failbit);
+ bool rejected = false;
+ try { cf.Read(input, options); }
+ catch (const SyntaxError&) { rejected = true; }
+ @assert rejected
+}
+@end
+
+@test Partial multiword statement is rejected safely
+{
+ ControlFile cf;
+ cf.DeclareStatement("set value", "x");
+ ParamList options;
+ std::istringstream input("set\n");
+ bool rejected = false;
+ try { cf.Read(input, options); }
+ catch (const SyntaxError&) { rejected = true; }
+ @assert rejected
+ std::istringstream valid("set value 42\n");
+ cf.Read(valid, options);
+ @equal cf["set-x"], "42"
+}
+@end
+
 @test Lectura de control file simple
 {
  ControlFile cf;

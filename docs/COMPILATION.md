@@ -25,7 +25,7 @@ The build should finish without errors, producing the following artifacts:
 - `build/bin/lpmd` – the main executable.
 - `build/lib/liblpmd.a` – the static library that exposes the simulation
   core.
-- `build/lib/lpmd_force_constant.so` – the sample force field plugin.
+- `build/lib/constantforce.so` – the constant-force plugin.
 
 These paths match the default output configuration of the CMake project and
 confirm that the compilation stage completed successfully.
@@ -140,3 +140,62 @@ New checks can be registered by adding a `.unit` file to
 LPUnit generator converts each `.unit` specification into a dedicated test
 executable that is picked up automatically by the `liblpmd_unit_tests`
 aggregate target.
+
+## Diagnosing slow builds under WSL
+
+Compiling tests and executing them are separate stages. A line such as
+`Building CXX object .../paramvaluetest.cc.o` reports a compilation job being
+started; with parallel builds, the last printed filename does not establish
+which job is slow. Disabling tests reduces the build workload but does not
+identify the cause of a stall.
+
+From the checkout on the affected WSL machine, keep tests enabled and first
+build with a bounded number of jobs:
+
+```bash
+cmake -S . -B build-wsl -DCMAKE_BUILD_TYPE=Release -DLPMD_ENABLE_TESTS=ON
+cmake --build build-wsl --parallel 2 --verbose
+ctest --test-dir build-wsl --output-on-failure --timeout 60 -j 1
+```
+
+To isolate the file shown in the original report:
+
+```bash
+cmake --build build-wsl --target paramvaluetest_unit --parallel 1 --verbose
+```
+
+While it is stalled, collect these diagnostics in another WSL terminal:
+
+```bash
+free -h
+vmstat 1 10
+ps -C cc1plus,c++,g++,make,ninja -o pid,ppid,stat,pcpu,pmem,rss,etime,args
+dmesg -T | grep -Ei 'out of memory|oom|killed process' | tail -20
+```
+
+`cc1plus` is GCC's C++ compiler process. Sustained swap activity suggests
+memory pressure; an OOM message confirms a process was killed for lack of
+memory. CPU activity alone cannot distinguish useful compilation from a
+compiler bug. These observations must come from the affected machine.
+
+The test runner now rejects missing `@end` directives, and the CTest entries
+have timeouts. Timeouts apply to execution, not to C++ compilation.
+
+## Memory and undefined-behavior checks
+
+With GCC or Clang, use a separate Debug build:
+
+```bash
+cmake -S . -B build-sanitize -DCMAKE_BUILD_TYPE=Debug \
+  -DLPMD_ENABLE_TESTS=ON -DLPMD_ENABLE_OPENMP=OFF \
+  -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
+cmake --build build-sanitize --target liblpmd_unit_tests --parallel 2
+ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1 \
+  ctest --test-dir build-sanitize --output-on-failure --timeout 60 -j 1
+```
+
+LeakSanitizer requires access to process information and should run outside
+debuggers or restricted sandboxes that prevent it from inspecting threads.
+The regression suite covers species selection, vector parsing, test-runner
+lifecycle, cell transforms, and neighbor lists for both `linkedcell` and
+`verletlist`, including changing radii, moving atoms and changing cell geometry.

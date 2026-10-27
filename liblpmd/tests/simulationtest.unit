@@ -19,6 +19,18 @@ class MockIntegrator: public Integrator
 
 @testsuite Tests de Simulation
 
+@test Simulation registry can be cleaned more than once
+{
+ RuntimeContext context;
+ for (int iteration=0; iteration<2; ++iteration)
+ {
+  SimulationBuilder owner;
+  Simulation& simulation = SimulationBuilder::CreateGeneric(context, 2, Atom("Ar"));
+  @equal simulation.Atoms().Size(), 2
+ }
+}
+@end
+
 @test Inicializacion con numero de atomos
 {
  RuntimeContext context;

@@ -28,7 +28,7 @@ public:
   virtual double AtomEnergy(Configuration& conf, long i) = 0;
 
 private:
-  int spc_sum;
+  int species1, species2;
   double rcutoff;
 
 protected:

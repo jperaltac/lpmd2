@@ -8,6 +8,8 @@
 #include <lpmd/cellmanager.h>
 #include <lpmd/configuration.h>
 #include <lpmd/plugin.h>
+#include <array>
+#include <vector>
 
 using namespace lpmd;
 
@@ -27,12 +29,10 @@ public:
 private:
   double cutoff;
   int nx, ny, nz;
-  int *head, *tail, *subcell;
-  long cells_inside, last_atoms_size;
-  long *atomlist, *indexc;
+  std::vector<long> head, atomlist, indexc;
+  std::vector<lpmd::BasicAtom*> atomptr;
+  std::vector<std::array<int, 3>> offsets;
   bool mode, warn_outside;
-  NeighborList* full_list_half;
-  NeighborList* full_list_full;
 };
 
 #endif

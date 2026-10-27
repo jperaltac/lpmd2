@@ -59,7 +59,8 @@ double LennardJones::pairEnergy(const double& r) const {
 
 Vector LennardJones::pairForce(const Vector& r) const {
   double rr2 = r.SquareModule();
-  double r6 = pow(sigma * sigma / rr2, 3.0e0);
+  const double r2 = sigma * sigma / rr2;
+  const double r6 = r2 * r2 * r2;
   double r12 = r6 * r6;
   double ff = -48.0e0 * (epsilon / rr2) * (r12 - 0.50e0 * r6);
   Vector fv = r * ff;

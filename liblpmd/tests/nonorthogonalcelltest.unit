@@ -10,6 +10,20 @@ using namespace lpmd;
 
 @testsuite Tests de Cell
 
+@test Transformaciones se actualizan despues de modificar la celda
+{
+ Cell cell(10.0*e1, 10.0*e2, 10.0*e3);
+ cell.Fractional(Vector());
+ cell[2] = Vector(5.0, 0.0, 10.0);
+ Vector fractional = cell.Fractional(Vector(2.5, 0.0, 5.0));
+ @approx (fractional-Vector(0.0, 0.0, 0.5)).Module(), 0.0, 1E-12
+ @approx (cell.Cartesian(fractional)-Vector(2.5, 0.0, 5.0)).Module(), 0.0, 1E-12
+ @assert !cell.IsOrthogonal()
+ cell[2] = 10.0*e3;
+ @assert cell.IsOrthogonal()
+}
+@end
+
 @test Constructor por defecto
 {
  Vector e[3];
@@ -247,11 +261,20 @@ using namespace lpmd;
  {
   Vector a = center + RandomVector(4.95);
   Vector b = center + RandomVector(4.95);
-  @approx (a + c.Displacement(a, b) - b).Module(), 0.0, 1.0E-10
+  // The nearest image may differ from b by an integer number of box lengths.
+  Vector displacement = c.Displacement(a, b);
+  Vector image = (a + displacement - b)/10.0;
+  for (int axis=0; axis<3; ++axis)
+  {
+   @assert fabs(displacement[axis]) <= 5.0
+   @approx image[axis], std::round(image[axis]), 1.0E-10
+  }
   @approx c.Displacement(center, a).Module(), 4.95, 1.0E-10
   @approx c.Displacement(center, b).Module(), 4.95, 1.0E-10
  }
 }
+
+@end
 
 @test Displacement, celda periodica, largas distancias
 {

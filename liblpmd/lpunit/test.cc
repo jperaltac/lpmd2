@@ -32,9 +32,11 @@ bool SimpleTest::Check() {
   bool result = true;
   try {
     (*(impl->testfunction))();
-    Teardown();
   } catch (TestFailed& tf) {
     result = false;
+  } catch (...) {
+    Teardown();
+    throw;
   }
   Teardown();
   return result;
